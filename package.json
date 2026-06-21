@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:init": "node db/init.js",
+    "db:seed": "node db/seed.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",
