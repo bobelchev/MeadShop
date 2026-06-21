@@ -13,6 +13,8 @@ B2C e-commerce site selling honey and mead (fermented honey alcohol), Bulgarian 
 - DB: SQLite via `better-sqlite3`, accessed directly from Route Handlers / Server Actions
 - Deployment: Railway, single service
 
+Config is `next.config.mjs` (ESM). It must keep `serverExternalPackages: ['better-sqlite3']` — removing this breaks the native module in the Next.js build.
+
 ## Commands
 ```bash
 npm run dev       # start dev server at http://localhost:3000
@@ -39,10 +41,12 @@ npm run db:seed   # inserts 3 sample products; optional
 `db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS.
 
 ### Cart state
-Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount.
+Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount. **Not yet built** — no `context/` directory exists yet; all cart/shop/checkout pages are stubs returning "coming soon".
 
 ### Admin auth
 Password stored in `ADMIN_PASSWORD` env var. Admin routes (`/admin/*`) are not locale-prefixed and check a cookie set at `/admin/login`. No user accounts, no JWT — just a simple cookie comparison.
+
+`app/admin/layout.js` is a **parallel root layout** — it renders its own `<html>` and `<body>` tags. Don't wrap it in a nested layout or add another `<html>/<body>` inside it.
 
 ### Age verification
 NOT YET IMPLEMENTED — placeholder pages only. When built: must run before any `/[locale]/shop*` route (layout check or proxy interceptor), set a cookie on confirmation, clear on session end.
@@ -113,9 +117,11 @@ GET   /api/wholesale             -> route handler (admin only)
 ## Conventions
 - Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
 - DB schema and seed scripts in `/db`.
+- Shared UI components in `/components` (currently `Header.js`, `LanguageToggle.js`).
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
 - Every user-facing string goes through `next-intl` — never hardcoded in one language.
 - Images: `.webp` format, referenced via Next.js `<Image>`. Empty placeholder dirs: `public/img/products/`, `public/img/hero/`, `public/img/brand/` (tracked with `.gitkeep`).
+- `lib/db.js` already sets WAL mode and `foreign_keys = ON` — do not set these pragmas again in other code.
 
 ## Subagents (VoltAgent core-development pack)
 - `fullstack-developer` — primary agent now that frontend + backend live in one Next.js app

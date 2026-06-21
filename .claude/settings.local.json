@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm *)",
+      "PowerShell(New-Item *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(echo \"exit:$?\")",
+      "PowerShell(try { $resp = Invoke-WebRequest -Uri \"http://localhost:3002\" -MaximumRedirection 0 -ErrorAction Stop; Write-Output \"Status: $\\($resp.StatusCode\\)\" } catch { $err = $_.Exception; if \\($err.Response\\) { Write-Output \"Status: $\\($err.Response.StatusCode.value__\\) - $\\($err.Response.StatusDescription\\)\" } else { Write-Output \"Error: $\\($err.Message\\)\" } })",
+      "PowerShell(Get-Process *)",
+      "PowerShell(try { $resp = Invoke-WebRequest -Uri \"http://localhost:3002\" -MaximumRedirection 0 -ErrorAction Stop; Write-Output \"Status: $\\($resp.StatusCode\\)\" } catch { $err = $_.Exception; if \\($err.Response\\) { Write-Output \"Status: $\\($err.Response.StatusCode.value__\\) $\\($err.Response.StatusDescription\\)\" } else { Write-Output \"Error: $\\($err.Message\\)\" } })",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{redirect_url}\" -L --max-redirs 0 http://localhost:3002/)",
+      "PowerShell(netstat *)",
+      "PowerShell(try { $resp = Invoke-WebRequest -Uri \"http://localhost:3002/bg\" -TimeoutSec 120 -ErrorAction Stop; Write-Output \"Status: $\\($resp.StatusCode\\)\"; Write-Output \"Content: $\\($resp.Content.Substring\\(0, [Math]::Min\\(500, $resp.Content.Length\\)\\)\\)\" } catch { $err = $_.Exception; if \\($err.Response\\) { Write-Output \"Status: $\\($err.Response.StatusCode.value__\\)\" } else { Write-Output \"Error: $\\($err.Message\\)\" } })",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Remove-Item *)",
+      "Bash(curl -v -m 60 http://localhost:3002/)",
+      "PowerShell(Receive-Job *)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\bobel\\\\Desktop\\\\ClaudeTestProject\\\\MeadShop\"; $job = Start-Job { Set-Location \"C:\\\\Users\\\\bobel\\\\Desktop\\\\ClaudeTestProject\\\\MeadShop\"; node_modules\\\\.bin\\\\next dev --port 3010 2>&1 }; Start-Sleep -Seconds 8; try { $r = Invoke-WebRequest -Uri \"http://localhost:3010\" -MaximumRedirection 0 -ErrorAction Stop; \"ROOT: $\\($r.StatusCode\\)\" } catch { $e = $_.Exception; if \\($e.Response\\) { \"ROOT: $\\($e.Response.StatusCode.value__\\) -> $\\($e.Response.Headers['Location']\\)\" } else { \"ROOT ERROR: $\\($e.Message\\)\" } })",
+      "PowerShell($proc = Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c\", \"cd /d C:\\\\Users\\\\bobel\\\\Desktop\\\\ClaudeTestProject\\\\MeadShop && node_modules\\\\.bin\\\\next dev --port 3010 > C:\\\\Users\\\\bobel\\\\AppData\\\\Local\\\\Temp\\\\meadshop-dev3.log 2>&1\" -WindowStyle Hidden -PassThru; Write-Output \"PID: $\\($proc.Id\\)\")",
+      "Bash(curl *)"
+    ]
+  }
+}

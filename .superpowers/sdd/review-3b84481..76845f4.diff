@@ -1,0 +1,88 @@
+# Review package: 3b84481..76845f4
+
+## Commits
+76845f4 feat: add Header with LanguageToggle for locale switching
+
+## Files changed
+ app/[locale]/layout.js       |  2 ++
+ components/Header.js         | 24 ++++++++++++++++++++++++
+ components/LanguageToggle.js | 18 ++++++++++++++++++
+ 3 files changed, 44 insertions(+)
+
+## Diff
+diff --git a/app/[locale]/layout.js b/app/[locale]/layout.js
+index ba1e5d2..dae4b88 100644
+--- a/app/[locale]/layout.js
++++ b/app/[locale]/layout.js
+@@ -1,15 +1,17 @@
+ import { NextIntlClientProvider } from 'next-intl';
+ import { getMessages } from 'next-intl/server';
++import Header from '@/components/Header';
+ 
+ export default async function LocaleLayout({ children, params }) {
+   const { locale } = await params;
+   const messages = await getMessages();
+ 
+   return (
+     <NextIntlClientProvider locale={locale} messages={messages}>
+       <div className="min-h-screen flex flex-col">
++        <Header />
+         <main className="flex-1">{children}</main>
+       </div>
+     </NextIntlClientProvider>
+   );
+ }
+diff --git a/components/Header.js b/components/Header.js
+new file mode 100644
+index 0000000..f6d81ff
+--- /dev/null
++++ b/components/Header.js
+@@ -0,0 +1,24 @@
++import { getTranslations, getLocale } from 'next-intl/server';
++import Link from 'next/link';
++import LanguageToggle from './LanguageToggle';
++
++export default async function Header() {
++  const t = await getTranslations('nav');
++  const locale = await getLocale();
++
++  return (
++    <header className="border-b py-4 px-6 flex items-center justify-between">
++      <Link href={`/${locale}`} className="font-bold text-lg">
++        Мед &amp; Медовина
++      </Link>
++      <nav className="flex gap-6 items-center text-sm">
++        <Link href={`/${locale}/shop`}>{t('shop')}</Link>
++        <Link href={`/${locale}/wholesale`}>{t('wholesale')}</Link>
++        <Link href={`/${locale}/about`}>{t('about')}</Link>
++        <Link href={`/${locale}/contact`}>{t('contact')}</Link>
++        <Link href={`/${locale}/cart`}>{t('cart')}</Link>
++        <LanguageToggle />
++      </nav>
++    </header>
++  );
++}
+diff --git a/components/LanguageToggle.js b/components/LanguageToggle.js
+new file mode 100644
+index 0000000..5a852e2
+--- /dev/null
++++ b/components/LanguageToggle.js
+@@ -0,0 +1,18 @@
++'use client';
++
++import { useLocale } from 'next-intl';
++import { usePathname } from 'next/navigation';
++
++export default function LanguageToggle() {
++  const locale = useLocale();
++  const pathname = usePathname();
++  const otherLocale = locale === 'bg' ? 'en' : 'bg';
++  // Swap the locale segment: /bg/shop → /en/shop
++  const newPath = pathname.replace(`/${locale}`, `/${otherLocale}`);
++
++  return (
++    <a href={newPath} className="text-sm font-semibold underline">
++      {otherLocale.toUpperCase()}
++    </a>
++  );
++}

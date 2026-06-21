@@ -1,3 +1,232 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Base layer overrides ──────────────────────────────────────────────── */
+@layer base {
+  html {
+    /* Warm ivory page ground — never stark white */
+    background-color: #FAF7F0;
+    color: #2A1A0E;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #FAF7F0;
+  }
+
+  /* Heading scale uses display serif */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    color: #2A1A0E;
+    font-weight: 700;
+  }
+
+  h1 { font-size: 3rem;   line-height: 3.5rem; }
+  h2 { font-size: 2.25rem; line-height: 2.75rem; }
+  h3 { font-size: 1.875rem; line-height: 2.375rem; }
+  h4 { font-size: 1.5rem;  line-height: 2rem; }
+
+  p {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #5C3A1E;   /* bark-500 — warm brown, softer than bark-700 */
+    line-height: 1.625;
+  }
+
+  a {
+    color: #8A5A04;   /* honey-700 */
+    text-decoration: none;
+    transition: color 180ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  a:hover {
+    color: #B8770A;   /* honey-600 */
+  }
+
+  /* Inputs inherit body font */
+  input, textarea, select, button {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Focus ring — brand amber, never browser-default blue */
+  :focus-visible {
+    outline: 2px solid #D4940C;   /* honey-500 */
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Horizontal rule */
+  hr {
+    border-color: #EBD9B8;   /* cream-200 */
+  }
+}
+
+/* ─── Component layer — reusable brand patterns ──────────────────────────── */
+@layer components {
+
+  /* ── Buttons ──────────────────────────────────────────────────────────── */
+
+  /* Primary CTA: add-to-cart, place order, confirm */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-honey-500 text-white font-body font-semibold
+           px-6 py-3 rounded-md
+           shadow-btn
+           transition-all duration-180
+           hover:bg-honey-600 hover:shadow-btn-hover
+           active:bg-honey-700 active:shadow-none active:translate-y-px
+           focus-visible:ring-2 focus-visible:ring-honey-500 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
+  }
+
+  /* Secondary: browse categories, view more */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-bark-700 text-cream-50 font-body font-semibold
+           px-6 py-3 rounded-md
+           shadow-btn
+           transition-all duration-180
+           hover:bg-bark-600 hover:shadow-btn-hover
+           active:bg-bark-800 active:translate-y-px
+           focus-visible:ring-2 focus-visible:ring-bark-700 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost / outline: cancel, back, secondary nav actions */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           bg-transparent text-bark-700 font-body font-medium
+           px-6 py-3 rounded-md
+           border border-bark-400
+           transition-all duration-180
+           hover:bg-cream-100 hover:border-bark-700
+           active:bg-cream-200 active:translate-y-px
+           focus-visible:ring-2 focus-visible:ring-bark-700 focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost inverted: ghost CTA on dark backgrounds (mead panel, dark hero overlays) */
+  .btn-ghost-inverted {
+    @apply inline-flex items-center justify-center gap-2
+           bg-transparent text-cream-50 font-body font-medium
+           px-6 py-3 rounded-md
+           border border-cream-300
+           transition-all duration-180
+           hover:bg-white/10 hover:border-cream-50
+           active:bg-white/20 active:translate-y-px
+           focus-visible:ring-2 focus-visible:ring-cream-50 focus-visible:ring-offset-2 focus-visible:ring-offset-mead-700
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Mead-accented primary: used on mead product pages / mead CTAs */
+  .btn-mead {
+    @apply inline-flex items-center justify-center gap-2
+           bg-mead-500 text-white font-body font-semibold
+           px-6 py-3 rounded-md
+           shadow-btn
+           transition-all duration-180
+           hover:bg-mead-600 hover:shadow-btn-hover
+           active:bg-mead-700 active:translate-y-px
+           focus-visible:ring-2 focus-visible:ring-mead-500 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* ── Cards ────────────────────────────────────────────────────────────── */
+
+  /* Product card — used in shop grid */
+  .card-product {
+    @apply bg-cream-100 rounded-lg shadow-card
+           border border-cream-200
+           overflow-hidden
+           transition-all duration-250
+           hover:shadow-card-hover hover:-translate-y-0.5;
+  }
+
+  /* Card image placeholder — filled by category accent CSS vars */
+  .card-image-placeholder {
+    @apply w-full aspect-square flex items-center justify-center
+           text-cream-400 select-none;
+  }
+
+  /* Card body padding */
+  .card-body {
+    @apply p-4 flex flex-col gap-2;
+  }
+
+  /* ── Category badges ──────────────────────────────────────────────────── */
+
+  .badge-honey {
+    @apply inline-flex items-center
+           bg-honey-100 text-honey-700
+           text-xs font-body font-semibold uppercase tracking-wide
+           px-2.5 py-0.5 rounded-sm;
+  }
+
+  .badge-mead {
+    @apply inline-flex items-center
+           bg-mead-100 text-mead-700
+           text-xs font-body font-semibold uppercase tracking-wide
+           px-2.5 py-0.5 rounded-sm;
+  }
+
+  /* ── Section wrapper ──────────────────────────────────────────────────── */
+  .section {
+    @apply px-6 md:px-8 lg:px-16 py-10 md:py-16;
+  }
+
+  .section-narrow {
+    @apply max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-16;
+  }
+
+  /* ── Decorative rule ──────────────────────────────────────────────────── */
+  /* Small centered ornament between sections */
+  .ornament-rule {
+    @apply flex items-center gap-4 my-8;
+  }
+
+  .ornament-rule::before,
+  .ornament-rule::after {
+    content: '';
+    @apply flex-1 h-px bg-cream-300;
+  }
+}
+
+/* ─── Utility layer extras ───────────────────────────────────────────────── */
+@layer utilities {
+  /* Honey category image placeholder background */
+  .bg-honey-placeholder {
+    background: linear-gradient(135deg, #FDF0C8 0%, #FAE08E 100%);
+  }
+
+  /* Mead category image placeholder background */
+  .bg-mead-placeholder {
+    background: linear-gradient(135deg, #ECDDE8 0%, #D4B0CA 100%);
+  }
+
+  /* Hero parchment texture overlay (pure CSS, no image) */
+  .bg-hero-parchment {
+    background: linear-gradient(160deg, #FAF7F0 0%, #F5EDDC 50%, #EBD9B8 100%);
+  }
+
+  /* Subtle warm vignette for hero sections with photos */
+  .hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(42, 26, 14, 0.45) 0%,
+      rgba(42, 26, 14, 0.15) 50%,
+      rgba(42, 26, 14, 0.50) 100%
+    );
+  }
+
+  /* Text shadow for hero headings over photo backgrounds */
+  .text-shadow-warm {
+    text-shadow: 0 2px 12px rgba(42, 26, 14, 0.40);
+  }
+
+  /* Mead section dark panel */
+  .bg-mead-panel {
+    background: linear-gradient(135deg, #321228 0%, #4A1A3A 100%);
+  }
+}

@@ -1,3 +1,126 @@
-export default function HomePage() {
-  return <p>Home — coming soon.</p>;
+import { getTranslations, getLocale } from 'next-intl/server';
+import Link from 'next/link';
+
+export default async function HomePage() {
+  const t = await getTranslations('home');
+  const locale = await getLocale();
+
+  return (
+    <>
+      {/* ── Hero ───────────────────────────────────────────────────────── */}
+      <section className="bg-hero-parchment">
+        <div className="section max-w-7xl mx-auto">
+          <div className="max-w-2xl">
+            <p className="font-body text-sm font-semibold uppercase tracking-widest text-honey-600 mb-3">
+              {t('hero_eyebrow')}
+            </p>
+            <h1 className="font-display text-5xl md:text-hero font-bold text-bark-700 mb-5 leading-tight">
+              {t('hero_heading')}
+            </h1>
+            <p className="font-body text-lg text-bark-500 mb-8 max-w-prose">
+              {t('hero_body')}
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link href={`/${locale}/shop`} className="btn-primary px-8 py-4 text-base">
+                {t('hero_cta_shop')}
+              </Link>
+              <Link href={`/${locale}/about`} className="btn-ghost px-8 py-4 text-base">
+                {t('hero_cta_about')}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Categories ─────────────────────────────────────────────────── */}
+      <section className="section">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-bark-700 text-center mb-10">
+            {t('categories_heading')}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Honey */}
+            <div className="rounded-xl overflow-hidden border border-cream-200 shadow-card hover:shadow-card-hover transition-shadow duration-250">
+              <div className="bg-honey-placeholder h-56" />
+              <div className="p-6">
+                <span className="badge-honey">{t('honey_label')}</span>
+                <h3 className="font-display text-2xl font-bold text-bark-700 mt-3 mb-2">
+                  {t('honey_title')}
+                </h3>
+                <p className="font-body text-bark-500 mb-5 leading-relaxed">
+                  {t('honey_body')}
+                </p>
+                <Link href={`/${locale}/shop?category=honey`} className="btn-primary">
+                  {t('honey_cta')}
+                </Link>
+              </div>
+            </div>
+
+            {/* Mead */}
+            <div className="rounded-xl overflow-hidden border border-cream-200 shadow-card hover:shadow-card-hover transition-shadow duration-250">
+              <div className="bg-mead-placeholder h-56" />
+              <div className="p-6">
+                <span className="badge-mead">{t('mead_label')}</span>
+                <h3 className="font-display text-2xl font-bold text-bark-700 mt-3 mb-2">
+                  {t('mead_title')}
+                </h3>
+                <p className="font-body text-bark-500 mb-5 leading-relaxed">
+                  {t('mead_body')}
+                </p>
+                <Link href={`/${locale}/shop?category=mead`} className="btn-mead">
+                  {t('mead_cta')}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Values ─────────────────────────────────────────────────────── */}
+      <section className="bg-cream-100 border-t border-b border-cream-200">
+        <div className="section max-w-7xl mx-auto">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-bark-700 text-center mb-10">
+            {t('values_heading')}
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <ValueCard title={t('value_natural_title')} body={t('value_natural_body')} />
+            <ValueCard title={t('value_local_title')} body={t('value_local_body')} />
+            <ValueCard title={t('value_craft_title')} body={t('value_craft_body')} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Story teaser ───────────────────────────────────────────────── */}
+      <section className="bg-mead-panel">
+        <div className="section max-w-4xl mx-auto text-center">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-cream-50 mb-4">
+            {t('story_heading')}
+          </h2>
+          <p className="font-body text-lg text-cream-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+            {t('story_body')}
+          </p>
+          <Link href={`/${locale}/about`} className="btn-ghost-inverted">
+            {t('story_cta')}
+          </Link>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function ValueCard({ title, body }) {
+  return (
+    <div className="bg-cream-50 rounded-lg p-6 border border-cream-200 shadow-card">
+      <div className="w-10 h-10 rounded-full bg-honey-100 border border-honey-200 mb-4 flex items-center justify-center">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M8 1l1.854 4.146L14 6l-4.146 1.854L8 12l-1.854-4.146L2 6l4.146-1.854z"
+            fill="#8A5A04"
+          />
+        </svg>
+      </div>
+      <h3 className="font-display text-xl font-bold text-bark-700 mb-2">{title}</h3>
+      <p className="font-body text-sm text-bark-500 leading-relaxed">{body}</p>
+    </div>
+  );
 }

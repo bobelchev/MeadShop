@@ -1,0 +1,190 @@
+# Review package: 76845f4..860ccb0
+
+## Commits
+860ccb0 feat: add SQLite schema, init/seed scripts, and db singleton
+
+## Files changed
+ db/init.js   | 20 ++++++++++++++++++++
+ db/schema.js | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ db/seed.js   | 43 +++++++++++++++++++++++++++++++++++++++++++
+ lib/db.js    | 11 +++++++++++
+ package.json |  4 +++-
+ 5 files changed, 128 insertions(+), 1 deletion(-)
+
+## Diff
+diff --git a/db/init.js b/db/init.js
+new file mode 100644
+index 0000000..017a8c1
+--- /dev/null
++++ b/db/init.js
+@@ -0,0 +1,20 @@
++const Database = require('better-sqlite3');
++const path = require('path');
++const fs = require('fs');
++const { schema } = require('./schema');
++
++const dbPath = process.env.DATABASE_PATH || './data/shop.db';
++const resolved = path.resolve(dbPath);
++const dir = path.dirname(resolved);
++
++if (!fs.existsSync(dir)) {
++  fs.mkdirSync(dir, { recursive: true });
++}
++
++const db = new Database(resolved);
++db.pragma('journal_mode = WAL');
++db.pragma('foreign_keys = ON');
++db.exec(schema);
++db.close();
++
++console.log('Database initialized at', resolved);
+diff --git a/db/schema.js b/db/schema.js
+new file mode 100644
+index 0000000..975a323
+--- /dev/null
++++ b/db/schema.js
+@@ -0,0 +1,51 @@
++const schema = `
++  CREATE TABLE IF NOT EXISTS products (
++    id INTEGER PRIMARY KEY AUTOINCREMENT,
++    name_bg TEXT NOT NULL,
++    name_en TEXT NOT NULL,
++    category TEXT NOT NULL CHECK(category IN ('honey', 'mead')),
++    variant TEXT,
++    price_bgn REAL NOT NULL,
++    stock_qty INTEGER NOT NULL DEFAULT 0,
++    description_bg TEXT,
++    description_en TEXT,
++    image_path TEXT,
++    active INTEGER NOT NULL DEFAULT 1
++  );
++
++  CREATE TABLE IF NOT EXISTS orders (
++    id INTEGER PRIMARY KEY AUTOINCREMENT,
++    customer_name TEXT NOT NULL,
++    phone TEXT NOT NULL,
++    email TEXT,
++    delivery_method TEXT NOT NULL CHECK(delivery_method IN ('ekont_office', 'ekont_door', 'speedy_office', 'speedy_door')),
++    address_or_office TEXT NOT NULL,
++    city TEXT NOT NULL,
++    notes TEXT,
++    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
++    total_amount REAL NOT NULL,
++    created_at TEXT NOT NULL DEFAULT (datetime('now'))
++  );
++
++  CREATE TABLE IF NOT EXISTS order_items (
++    id INTEGER PRIMARY KEY AUTOINCREMENT,
++    order_id INTEGER NOT NULL REFERENCES orders(id),
++    product_id INTEGER NOT NULL REFERENCES products(id),
++    qty INTEGER NOT NULL,
++    unit_price REAL NOT NULL
++  );
++
++  CREATE TABLE IF NOT EXISTS wholesale_inquiries (
++    id INTEGER PRIMARY KEY AUTOINCREMENT,
++    company_name TEXT NOT NULL,
++    contact_name TEXT NOT NULL,
++    phone TEXT NOT NULL,
++    email TEXT NOT NULL,
++    message TEXT,
++    estimated_volume TEXT,
++    status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new', 'contacted', 'closed')),
++    created_at TEXT NOT NULL DEFAULT (datetime('now'))
++  );
++`;
++
++module.exports = { schema };
+diff --git a/db/seed.js b/db/seed.js
+new file mode 100644
+index 0000000..e52cdfb
+--- /dev/null
++++ b/db/seed.js
+@@ -0,0 +1,43 @@
++const Database = require('better-sqlite3');
++const path = require('path');
++
++const dbPath = process.env.DATABASE_PATH || './data/shop.db';
++const db = new Database(path.resolve(dbPath));
++
++const insert = db.prepare(`
++  INSERT INTO products (name_bg, name_en, category, variant, price_bgn, stock_qty,
++                        description_bg, description_en, active)
++  VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty,
++          @description_bg, @description_en, @active)
++`);
++
++const seed = db.transaction(() => {
++  insert.run({
++    name_bg: 'Липов мед', name_en: 'Linden Honey',
++    category: 'honey', variant: '700г',
++    price_bgn: 18.00, stock_qty: 50,
++    description_bg: 'Чист липов мед от горски пчелини.',
++    description_en: 'Pure linden honey from forest apiaries.',
++    active: 1,
++  });
++  insert.run({
++    name_bg: 'Липов мед', name_en: 'Linden Honey',
++    category: 'honey', variant: '240г',
++    price_bgn: 8.00, stock_qty: 80,
++    description_bg: 'Чист липов мед от горски пчелини.',
++    description_en: 'Pure linden honey from forest apiaries.',
++    active: 1,
++  });
++  insert.run({
++    name_bg: 'Традиционна медовина', name_en: 'Traditional Mead',
++    category: 'mead', variant: '750мл',
++    price_bgn: 32.00, stock_qty: 30,
++    description_bg: 'Ферментирала медовина по традиционна рецепта.',
++    description_en: 'Fermented mead made with a traditional recipe.',
++    active: 1,
++  });
++});
++
++seed();
++db.close();
++console.log('Seeded 3 products.');
+diff --git a/lib/db.js b/lib/db.js
+new file mode 100644
+index 0000000..67014cd
+--- /dev/null
++++ b/lib/db.js
+@@ -0,0 +1,11 @@
++import Database from 'better-sqlite3';
++import path from 'path';
++
++const dbPath = process.env.DATABASE_PATH;
++if (!dbPath) throw new Error('DATABASE_PATH env var is not set');
++
++const db = new Database(path.resolve(dbPath));
++db.pragma('journal_mode = WAL');
++db.pragma('foreign_keys = ON');
++
++export default db;
+diff --git a/package.json b/package.json
+index cd8068f..0aea26e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,19 +1,21 @@
+ {
+   "name": "mead-shop",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
+-    "lint": "next lint"
++    "lint": "next lint",
++    "db:init": "node db/init.js",
++    "db:seed": "node db/seed.js"
+   },
+   "dependencies": {
+     "better-sqlite3": "^12.11.1",
+     "next": "14.2.35",
+     "next-intl": "^3.26.5",
+     "react": "^18",
+     "react-dom": "^18"
+   },
+   "devDependencies": {
+     "autoprefixer": "^10.0.1",
