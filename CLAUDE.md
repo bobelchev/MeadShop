@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 B2C e-commerce site selling honey and mead (fermented honey alcohol), Bulgarian market, plus a simple B2B wholesale inquiry page. Bilingual: Bulgarian (default) and English, with a toggle. Checkout is cash-on-delivery only — there is no payment gateway in this project.
 
 ## Stack
-- Framework: Next.js (App Router) — handles both frontend and backend in one app
+- Runtime: Node 22
+- Framework: Next.js 16 (App Router) + React 19 — handles both frontend and backend in one app
 - Styling: Tailwind CSS
-- i18n: `next-intl`, locale-prefixed routes (`/bg/...` default, `/en/...`)
+- i18n: `next-intl` v4, locale-prefixed routes (`/bg/...` default, `/en/...`)
 - DB: SQLite via `better-sqlite3`, accessed directly from Route Handlers / Server Actions
 - Deployment: Railway, single service
 
@@ -21,9 +22,10 @@ npm run lint      # ESLint
 
 No test runner is configured. Verify features by running the dev server.
 
-Requires `.env.local` with `DATABASE_PATH=./data/shop.db` before first run. Initialize the DB with:
+Requires `.env.local` with `DATABASE_PATH=./data/shop.db` before first run:
 ```bash
-node db/init.js   # creates tables; run once
+npm run db:init   # creates tables in ./data/shop.db; run once
+npm run db:seed   # inserts 3 sample products; optional
 ```
 
 ## Architecture
@@ -32,7 +34,9 @@ node db/init.js   # creates tables; run once
 `better-sqlite3` is synchronous and works best with a single process owning the DB file. One Railway service, one deploy, one Volume, no CORS setup. Server Actions handle form submissions with far less boilerplate than separate REST endpoints.
 
 ### DB access pattern
-`lib/db.js` exports a singleton `better-sqlite3` instance, read from `process.env.DATABASE_PATH`. Route Handlers and Server Actions import directly from there — no ORM, no connection pool.
+`lib/db.js` exports a singleton `better-sqlite3` instance (ES module `import/export`), read from `process.env.DATABASE_PATH`. Route Handlers and Server Actions import directly from there — no ORM, no connection pool.
+
+`db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS.
 
 ### Cart state
 Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount.
@@ -41,7 +45,7 @@ Client-side only: React Context + `localStorage`. No server-side cart, no sessio
 Password stored in `ADMIN_PASSWORD` env var. Admin routes (`/admin/*`) are not locale-prefixed and check a cookie set at `/admin/login`. No user accounts, no JWT — just a simple cookie comparison.
 
 ### Age verification
-Implemented as middleware (or a layout check) that runs before any `/[locale]/shop*` route. Sets a cookie on confirmation; clears on session end.
+NOT YET IMPLEMENTED — placeholder pages only. When built: must run before any `/[locale]/shop*` route (layout check or proxy interceptor), set a cookie on confirmation, clear on session end.
 
 ## Hard Rules
 - NEVER integrate Stripe, PayPal, or any online payment processor. Checkout is cash-on-delivery (Наложен платеж) only, fulfilled via Ekont or Speedy courier.
@@ -53,6 +57,8 @@ Implemented as middleware (or a layout check) that runs before any `/[locale]/sh
 ## Local Development
 - DB path comes from `DATABASE_PATH` env var (set in `.env.local`, gitignored) — never hardcode `/data/shop.db` in code.
 - Railway deployment will be done manually later — don't generate Railway-specific config (`railway.json`, etc.) unless asked.
+- Locale routing lives in `proxy.js` (Next.js 16 renamed `middleware.js` → `proxy.js`). Do not create a `middleware.js`.
+- The root `img/` folder contains real product photos already tracked in git. It is distinct from `public/img/` (which has only `.gitkeep` placeholders for web-served images).
 
 ## Deployment (Railway) — for later
 - One Next.js service with a Railway Volume mounted at `/data`; set `DATABASE_PATH=/data/shop.db` in the Railway service's variables.
@@ -65,6 +71,12 @@ Implemented as middleware (or a layout check) that runs before any `/[locale]/sh
 - Translation strings in `/messages/bg.json` and `/messages/en.json`.
 - The locale toggle in the header switches routes (`/bg/...` ↔ `/en/...`) — not a client-side text swap.
 - Product content (`name_bg`/`name_en`, `description_bg`/`description_en`) is bilingual DB data, not UI strings.
+
+next-intl v4 patterns in use:
+- `i18n/request.js`: `getRequestConfig(async ({ requestLocale }) => { const locale = (await requestLocale) ?? 'bg'; ... })`
+- Server Components: `getTranslations('ns')` and `getLocale()` from `next-intl/server`
+- Client Components: `useTranslations`, `useLocale` from `next-intl` (require `NextIntlClientProvider` ancestor)
+- `NextIntlClientProvider` is in `app/[locale]/layout.js` — it receives `messages` from `getMessages()` server-side
 
 ## Data Model
 ```
@@ -99,7 +111,7 @@ GET   /api/wholesale             -> route handler (admin only)
 - `/admin/login`, `/admin/orders`, `/admin/wholesale` — password-protected, not locale-prefixed
 
 ## Conventions
-- Server Actions and Route Handlers live alongside their routes (`actions.ts` / `route.ts` per `app/` segment).
+- Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
 - DB schema and seed scripts in `/db`.
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
 - Every user-facing string goes through `next-intl` — never hardcoded in one language.
