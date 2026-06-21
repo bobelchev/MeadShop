@@ -32,7 +32,7 @@ node db/init.js   # creates tables; run once
 `better-sqlite3` is synchronous and works best with a single process owning the DB file. One Railway service, one deploy, one Volume, no CORS setup. Server Actions handle form submissions with far less boilerplate than separate REST endpoints.
 
 ### DB access pattern
-`db/index.ts` exports a singleton `better-sqlite3` instance, read from `process.env.DATABASE_PATH`. Route Handlers and Server Actions import directly from there — no ORM, no connection pool.
+`lib/db.js` exports a singleton `better-sqlite3` instance, read from `process.env.DATABASE_PATH`. Route Handlers and Server Actions import directly from there — no ORM, no connection pool.
 
 ### Cart state
 Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount.
