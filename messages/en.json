@@ -1,2 +1,10 @@
 {
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "wholesale": "Wholesale",
+    "about": "About",
+    "contact": "Contact",
+    "cart": "Cart"
+  }
 }
