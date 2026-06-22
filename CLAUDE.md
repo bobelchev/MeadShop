@@ -46,7 +46,7 @@ On first open, `lib/db.js` imports `db/schema.js` via `createRequire` and calls 
 Client-side only: React Context + `localStorage`. Implemented in `context/CartContext.js`. Cart is serialized to `localStorage` on every change and rehydrated on mount. `CartProvider` wraps the locale layout in `app/[locale]/layout.js`. `useCart()` hook provides `addItem`, `removeItem`, `updateQty`, `clearCart`, `totalItems`, `totalPrice`.
 
 ### Admin auth
-Password stored in `ADMIN_PASSWORD` env var. Admin routes use a `(protected)` route group (`app/admin/(protected)/`) whose `layout.js` reads the `admin_session` cookie (sha256 of `ADMIN_PASSWORD`) and redirects to `/admin/login` if absent or wrong. Cookie is set httpOnly, sameSite strict, secure in production, path `/admin`.
+Password stored in `ADMIN_PASSWORD` env var. On login, `lib/adminSession.js` generates a random 32-byte token, stores `sha256(token)` in an in-memory Map (`globalThis.__adminSessions` so it survives Turbopack HMR reloads), and sets the raw token in the `admin_session` cookie. Admin routes use a `(protected)` route group (`app/admin/(protected)/`) whose `layout.js` calls `isAdminAuthenticated()` and redirects to `/admin/login` if the session is absent or expired (24 h TTL). Cookie is set httpOnly, sameSite strict, secure in production, path `/admin`.
 
 `app/admin/layout.js` is a **parallel root layout** — it renders its own `<html>` and `<body>` tags. Don't wrap it in a nested layout or add another `<html>/<body>` inside it.
 
@@ -71,7 +71,7 @@ All customer-facing pages are fully built:
 - Home, shop listing, product detail (with image slideshow), cart, checkout (COD), order confirmation, wholesale inquiry, about, contact, age gate
 
 Admin panel is fully built:
-- Login, logout, orders (list + status update), wholesale inquiries (list + status update), products (list, create, edit, delete with image upload/remove)
+- Login, logout, orders (list + status update + Econt waybill creation), wholesale inquiries (list + status update), products (list, create, edit, delete with image upload/remove)
 
 **API route handlers are stubs** — all return hardcoded empty responses and are not used by the frontend (which queries the DB directly in Server Components).
 
@@ -90,14 +90,14 @@ Admin panel is fully built:
 
 ## Deployment (Railway)
 - `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly).
-- All env vars (`DATABASE_PATH`, `RAILWAY_RUN_UID`, `ADMIN_PASSWORD`, SMTP vars) are set in Railway's Variables dashboard — `.env` is gitignored. The Railway Volume must be mounted at `/data`.
+- All env vars (`DATABASE_PATH`, `RAILWAY_RUN_UID`, `ADMIN_PASSWORD`, SMTP vars, `ECONT_BASE_URL`, `ECONT_USER`, `ECONT_PASS`, `ECONT_SENDER_CITY_ID`) are set in Railway's Variables dashboard — `.env` is gitignored. The Railway Volume must be mounted at `/data`.
 - Never write the DB file during the build step — only at runtime, or data won't land on the volume.
 - Any `app/` file that queries the DB must have `export const dynamic = 'force-dynamic'` if Next.js would otherwise try to prerender it (e.g. `app/sitemap.js`). Route handlers and Server Components under dynamic `[param]` segments are already dynamic.
 - Single instance only (volume doesn't support horizontal scaling).
 
 ## Internationalization
 - Default locale: `bg`. Secondary: `en`.
-- Translation strings in `/messages/bg.json` and `/messages/en.json` — 12 namespaces: `nav`, `home`, `shop`, `age_gate`, `product`, `cart`, `checkout`, `order_confirmation`, `wholesale`, `about`, `contact`, `cookie_banner`. Each page namespace also has `meta_title` and `meta_description` keys for SEO.
+- Translation strings in `/messages/bg.json` and `/messages/en.json` — 13 namespaces: `nav`, `home`, `shop`, `age_gate`, `product`, `cart`, `checkout`, `order_confirmation`, `wholesale`, `about`, `contact`, `cookie_banner`, `privacy`. Each page namespace also has `meta_title` and `meta_description` keys for SEO.
 - The locale toggle in the header switches routes (`/bg/...` ↔ `/en/...`) — not a client-side text swap.
 - Product content (`name_bg`/`name_en`, `description_bg`/`description_en`) is bilingual DB data, not UI strings.
 
@@ -109,11 +109,13 @@ next-intl v4 patterns in use:
 
 ## Data Model
 ```
-products(id, name_bg, name_en, category[honey|mead], variant, price_bgn, stock_qty,
+products(id, name_bg, name_en, category[honey|mead], variant, price_bgn, stock_qty, weight_kg,
          description_bg, description_en, image_path, active)
 product_images(id, product_id → products.id ON DELETE CASCADE, image_path, sort_order)
 orders(id, customer_name, phone, email, delivery_method[ekont_office|ekont_door|speedy_office|speedy_door],
-       address_or_office, city, notes, status[pending|confirmed|shipped|delivered|cancelled], total_amount, created_at)
+       address_or_office, city, notes, status[pending|confirmed|shipped|delivered|cancelled], total_amount,
+       confirmation_token, econt_office_code, econt_shipment_number, econt_waybill_url,
+       delivery_price_eur, created_at)
 order_items(id, order_id → orders.id, product_id → products.id, qty, unit_price)
 wholesale_inquiries(id, company_name, contact_name, phone, email, message, estimated_volume, status[new|contacted|closed], created_at)
 ```
@@ -124,9 +126,12 @@ Products cannot be deleted if they appear in `order_items` (FK constraint). Set 
 ```
 GET   /api/products              -> route handler (stub)
 GET   /api/products/[id]         -> route handler (stub)
+GET   /api/econt/offices?q=...   -> searches cached Econt BG offices (used by EcontOfficePicker)
+GET   /api/econt/price?cityId=&amount=&items= -> live Econt delivery price estimate (EUR)
       createOrder()              -> server action (checkout form)
 GET   /api/orders                -> route handler (stub, admin only)
       updateOrderStatus()        -> server action (admin)
+      createEcontWaybill()       -> server action (admin order detail — creates real Econt label)
       createWholesaleInquiry()   -> server action (wholesale form)
 GET   /api/wholesale             -> route handler (stub, admin only)
       createProduct()            -> server action (admin products)
@@ -157,6 +162,9 @@ Admin (not locale-prefixed, protected by `(protected)` layout):
 - Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`, `CookieBanner.js`, `CartBadgeLink.js`). `Header` is a Server Component; `MobileMenu` and `CookieBanner` are Client Components.
 - `lib/i18n.js` exports `getLocalizedField(product, field, locale)` — use this instead of inline `product[name_${locale}]` lookups.
 - `lib/adminActions.js` exports `updateStatus(table, validStatuses, revalidateUrl, rowId, formData)` — shared helper used by orders and wholesale status-update actions. Not a `'use server'` file; import it from within `'use server'` action files.
+- `lib/price.js` exports `EUR_TO_BGN = 1.95583` (fixed BNB peg rate). All prices display as "X.XX EUR (Y.YY лв.)" — EUR is the leading value. Import this constant wherever currency conversion is needed; do not hardcode the rate.
+- `lib/econt.js` handles all Econt API calls: `searchOffices(query)`, `getDeliveryPrice(cityId, weightKg, cdAmount)`, `createWaybill(order, totalWeightKg)`. Offices and cities are cached in memory for 24 h. Uses `ECONT_BASE_URL` (default demo), `ECONT_USER`/`ECONT_PASS` (default `demo`/`demo`), `ECONT_SENDER_CITY_ID` (default 42 = Стара Загора). The demo account supports price calculation but **cannot create real waybills** (returns 517); real credentials are needed in production.
+- `components/EcontOfficePicker.js` is a Client Component — debounced search calling `/api/econt/offices`, fills hidden inputs `address_or_office`, `city`, `econt_office_code`, and fires `onSelect(office)` with the full office object (including `cityId` for price lookup).
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
 - Every user-facing string goes through `next-intl` — never hardcoded in one language. Admin UI is English-only and does not use `next-intl`.
 - Images: `.webp` format, referenced via Next.js `<Image>`. Uploaded product images are stored in `public/img/products/` with a `${Date.now()}-${random}${ext}` filename. `product_images` rows are managed in `saveProductImages()` inside the products `actions.js` using a transaction.
