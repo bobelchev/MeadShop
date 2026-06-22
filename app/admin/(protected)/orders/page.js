@@ -45,7 +45,11 @@ export default function AdminOrdersPage() {
               {orders.map((order) => (
                 <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 pr-4 text-gray-500">{order.id}</td>
-                  <td className="py-3 pr-4 font-medium text-gray-800">{order.customer_name}</td>
+                  <td className="py-3 pr-4 font-medium text-gray-800">
+                    <a href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-800">
+                      {order.customer_name}
+                    </a>
+                  </td>
                   <td className="py-3 pr-4 text-gray-600">{order.phone}</td>
                   <td className="py-3 pr-4 text-gray-600">{order.item_count}</td>
                   <td className="py-3 pr-4 text-gray-800">{Number(order.total_amount).toFixed(2)} BGN</td>
