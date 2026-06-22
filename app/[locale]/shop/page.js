@@ -2,6 +2,18 @@ import { getTranslations } from 'next-intl/server';
 import db from '@/lib/db';
 import ShopGrid from './ShopGrid';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
+
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'shop' });
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+    alternates: { canonical: `${SITE_URL}/${locale}/shop` },
+  };
+}
+
 export default async function ShopPage({ searchParams }) {
   const t = await getTranslations('shop');
   const params = await searchParams;

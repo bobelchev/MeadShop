@@ -8,6 +8,8 @@
     "cart": "Cart"
   },
   "home": {
+    "meta_title": "Pchelin Med — Natural Honey & Mead from Bulgaria",
+    "meta_description": "Pchelin Med offers natural honey and handcrafted mead direct from the apiary. Order with cash on delivery.",
     "hero_eyebrow": "Natural honey from Bulgaria",
     "hero_heading": "From the hive to your table",
     "hero_body": "Hand-harvested honey and fermented mead from Rhodope beekeepers — delivered straight to your door.",
@@ -34,6 +36,8 @@
     "story_cta": "Learn more"
   },
   "shop": {
+    "meta_title": "Shop — Pchelin Med",
+    "meta_description": "Browse our natural honeys and handcrafted meads. Delivery via Econt and Speedy.",
     "heading": "Shop",
     "subheading": "Natural honey and mead from Bulgaria",
     "filter_all": "All",
@@ -123,6 +127,8 @@
     "delivery_speedy_door": "Speedy — door delivery"
   },
   "wholesale": {
+    "meta_title": "Wholesale — Pchelin Med",
+    "meta_description": "Wholesale inquiry for honey and mead.",
     "heading": "Wholesale Inquiry",
     "subheading": "For businesses and retailers — get in touch for wholesale pricing.",
     "company_label": "Company",
@@ -138,6 +144,8 @@
     "error_required": "Please fill in the required fields (company, contact person, phone)."
   },
   "about": {
+    "meta_title": "About Us — Pchelin Med",
+    "meta_description": "Learn about our story and values.",
     "eyebrow": "Our story",
     "heading": "About us",
     "intro": "We unite small family beekeepers from the Rhodope and Balkan mountains to bring authentic honey and mead directly to your table.",
@@ -156,6 +164,8 @@
     "cta_button": "Browse the shop"
   },
   "contact": {
+    "meta_title": "Contact — Pchelin Med",
+    "meta_description": "Get in touch with us for enquiries and orders.",
     "heading": "Contact",
     "subheading": "Get in touch — we respond within 1 working day.",
     "phone_label": "Phone",

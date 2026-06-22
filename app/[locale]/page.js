@@ -1,6 +1,18 @@
 import { getTranslations, getLocale } from 'next-intl/server';
 import Link from 'next/link';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
+
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'home' });
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+    alternates: { canonical: `${SITE_URL}/${locale}` },
+  };
+}
+
 export default async function HomePage() {
   const t = await getTranslations('home');
   const locale = await getLocale();

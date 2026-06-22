@@ -1,4 +1,5 @@
 import db from '@/lib/db';
+import DeleteProductButton from './DeleteProductButton';
 
 export default function AdminProductsPage() {
   const products = db.prepare('SELECT * FROM products ORDER BY category, name_bg').all();
@@ -24,7 +25,7 @@ export default function AdminProductsPage() {
               <th className="py-2 pr-4">Price</th>
               <th className="py-2 pr-4">Stock</th>
               <th className="py-2 pr-4">Active</th>
-              <th className="py-2">Edit</th>
+              <th className="py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -41,11 +42,12 @@ export default function AdminProductsPage() {
                     {p.active ? 'yes' : 'no'}
                   </span>
                 </td>
-                <td className="py-3">
+                <td className="py-3 flex items-center">
                   <a href={`/admin/products/${p.id}`}
                     className="text-blue-600 hover:text-blue-800 text-xs font-medium">
                     Edit
                   </a>
+                  <DeleteProductButton productId={p.id} />
                 </td>
               </tr>
             ))}

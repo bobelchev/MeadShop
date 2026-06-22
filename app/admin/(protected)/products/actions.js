@@ -89,3 +89,19 @@ export async function updateProduct(productId, prevState, formData) {
   revalidatePath('/admin/products');
   return { success: true };
 }
+
+export async function deleteProduct(productId) {
+  const images = db
+    .prepare('SELECT image_path FROM product_images WHERE product_id = ?')
+    .all(productId);
+
+  db.prepare('DELETE FROM products WHERE id = ?').run(productId);
+
+  for (const { image_path } of images) {
+    const abs = path.join(process.cwd(), 'public', image_path);
+    try { fs.unlinkSync(abs); } catch { /* file already gone */ }
+  }
+
+  revalidatePath('/admin/products');
+  redirect('/admin/products');
+}
