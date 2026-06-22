@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import db from '@/lib/db';
 import WholesaleForm from './WholesaleForm';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
@@ -15,11 +16,17 @@ export async function generateMetadata({ params }) {
 
 export default async function WholesalePage() {
   const t = await getTranslations('wholesale');
+  const products = db
+    .prepare('SELECT id, name_bg, name_en, category, price_bgn FROM products WHERE active = 1 ORDER BY category, name_bg')
+    .all();
+
   return (
-    <section className="section section-narrow">
-      <h1 className="text-3xl font-display font-bold text-bark-900 mb-2">{t('heading')}</h1>
-      <p className="text-bark-600 mb-8">{t('subheading')}</p>
-      <WholesaleForm />
+    <section className="section">
+      <div className="max-w-5xl mx-auto px-6">
+        <h1 className="text-3xl font-display font-bold text-bark-900 mb-2">{t('heading')}</h1>
+        <p className="text-bark-600 mb-8">{t('subheading')}</p>
+        <WholesaleForm products={products} />
+      </div>
     </section>
   );
 }
