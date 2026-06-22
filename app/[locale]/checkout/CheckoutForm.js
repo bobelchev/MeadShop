@@ -22,6 +22,21 @@ export default function CheckoutForm() {
   const { items, totalPrice } = useCart();
   const [state, formAction, isPending] = useActionState(createOrder, null);
   const [delivery, setDelivery] = useState('');
+  const [deliveryPrice, setDeliveryPrice] = useState(null); // { price, currency } | 'loading' | 'error'
+
+  async function handleOfficeSelect(office) {
+    if (!office?.cityId) return;
+    setDeliveryPrice('loading');
+    try {
+      const res = await fetch(
+        `/api/econt/price?cityId=${office.cityId}&amount=${encodeURIComponent(totalPrice.toFixed(2))}&items=${encodeURIComponent(JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))))}`
+      );
+      const data = await res.json();
+      setDeliveryPrice(data.price != null ? data : 'error');
+    } catch {
+      setDeliveryPrice('error');
+    }
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -102,7 +117,18 @@ export default function CheckoutForm() {
           <label className="font-body font-medium text-bark-700 text-sm">
             {t('office_label')} <span className="text-mead-500">*</span>
           </label>
-          <EcontOfficePicker inputClass={inputClass} />
+          <EcontOfficePicker inputClass={inputClass} onSelect={handleOfficeSelect} />
+          {deliveryPrice === 'loading' && (
+            <p className="font-body text-xs text-stone-400">{t('delivery_price_loading')}</p>
+          )}
+          {deliveryPrice === 'error' && (
+            <p className="font-body text-xs text-stone-400">{t('delivery_price_unavailable')}</p>
+          )}
+          {deliveryPrice && deliveryPrice !== 'loading' && deliveryPrice !== 'error' && (
+            <p className="font-body text-xs text-honey-700">
+              {t('delivery_price_estimate')}: ~{deliveryPrice.price.toFixed(2)} {deliveryPrice.currency}
+            </p>
+          )}
         </div>
       ) : (
         <>

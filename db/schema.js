@@ -7,6 +7,7 @@ const schema = `
     variant TEXT,
     price_bgn REAL NOT NULL,
     stock_qty INTEGER NOT NULL DEFAULT 0,
+    weight_kg REAL NOT NULL DEFAULT 0.5,
     description_bg TEXT,
     description_en TEXT,
     active INTEGER NOT NULL DEFAULT 1

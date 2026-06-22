@@ -109,7 +109,10 @@
     "error_empty_cart": "Your cart is empty. Please add products before ordering.",
     "cod_notice": "You pay cash to the courier on delivery.",
     "office_label": "Econt Office",
-    "office_search_placeholder": "Search by city or office name..."
+    "office_search_placeholder": "Search by city or office name...",
+    "delivery_price_loading": "Calculating delivery cost...",
+    "delivery_price_unavailable": "Delivery price is currently unavailable.",
+    "delivery_price_estimate": "Estimated delivery cost"
   },
   "order_confirmation": {
     "heading": "Order received!",

@@ -20,6 +20,7 @@ function extractFields(formData) {
     variant: formData.get('variant')?.toString().trim() ?? '',
     price_bgn: parseFloat(formData.get('price_bgn')?.toString() ?? '0'),
     stock_qty: parseInt(formData.get('stock_qty')?.toString() ?? '0', 10),
+    weight_kg: parseFloat(formData.get('weight_kg')?.toString() ?? '0.5'),
     description_bg: formData.get('description_bg')?.toString().trim() ?? '',
     description_en: formData.get('description_en')?.toString().trim() ?? '',
     active: formData.get('active') === 'on' ? 1 : 0,
@@ -32,6 +33,7 @@ function validate(f) {
   if (!VALID_CATEGORIES.includes(f.category)) return 'Category must be honey or mead.';
   if (isNaN(f.price_bgn) || f.price_bgn <= 0) return 'Price must be a positive number.';
   if (isNaN(f.stock_qty) || f.stock_qty < 0) return 'Stock must be 0 or more.';
+  if (isNaN(f.weight_kg) || f.weight_kg <= 0) return 'Weight must be a positive number.';
   return null;
 }
 
@@ -71,8 +73,8 @@ export async function createProduct(prevState, formData) {
   if (error) return { error };
 
   const result = db.prepare(`
-    INSERT INTO products (name_bg, name_en, category, variant, price_bgn, stock_qty, description_bg, description_en, active)
-    VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty, @description_bg, @description_en, @active)
+    INSERT INTO products (name_bg, name_en, category, variant, price_bgn, stock_qty, weight_kg, description_bg, description_en, active)
+    VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty, @weight_kg, @description_bg, @description_en, @active)
   `).run(f);
 
   await saveProductImages(result.lastInsertRowid, formData);
@@ -88,8 +90,8 @@ export async function updateProduct(productId, prevState, formData) {
   db.prepare(`
     UPDATE products
     SET name_bg=@name_bg, name_en=@name_en, category=@category, variant=@variant,
-        price_bgn=@price_bgn, stock_qty=@stock_qty, description_bg=@description_bg,
-        description_en=@description_en, active=@active
+        price_bgn=@price_bgn, stock_qty=@stock_qty, weight_kg=@weight_kg,
+        description_bg=@description_bg, description_en=@description_en, active=@active
     WHERE id=@id
   `).run({ ...f, id: productId });
 

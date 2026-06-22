@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 
-export default function EcontOfficePicker({ inputClass }) {
+export default function EcontOfficePicker({ inputClass, onSelect }) {
   const t = useTranslations('checkout');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -42,6 +42,7 @@ export default function EcontOfficePicker({ inputClass }) {
     setSelected(office);
     setQuery(`${office.city} — ${office.name}`);
     setOpen(false);
+    onSelect?.(office);
   }
 
   function handleChange(e) {
