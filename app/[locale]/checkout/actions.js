@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
 import db from '@/lib/db';
+import { sendOrderNotification } from '@/lib/email';
 
 const DELIVERY_METHODS = ['ekont_office', 'ekont_door', 'speedy_office', 'speedy_door'];
 
@@ -34,7 +35,6 @@ export async function createOrder(prevState, formData) {
     return { error: 'error_empty_cart' };
   }
 
-  // Re-fetch prices from DB — never trust client-submitted prices
   const productIds = cartItems.map((i) => i.id);
   const placeholders = productIds.map(() => '?').join(',');
   const dbProducts = db
@@ -82,5 +82,16 @@ export async function createOrder(prevState, formData) {
   });
 
   const orderId = createOrderTx();
+  sendOrderNotification({
+    orderId,
+    customerName: customer_name,
+    phone,
+    email,
+    deliveryMethod: delivery_method,
+    addressOrOffice: address_or_office,
+    city,
+    notes,
+    totalAmount: total_amount,
+  }).catch(() => {});
   redirect(`/${locale}/order-confirmation?id=${orderId}`);
 }
