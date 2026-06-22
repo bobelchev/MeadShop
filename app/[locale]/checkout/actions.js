@@ -18,6 +18,7 @@ export async function createOrder(prevState, formData) {
   const address_or_office = formData.get('address_or_office')?.toString().trim().slice(0, 500) ?? '';
   const city = formData.get('city')?.toString().trim().slice(0, 200) ?? '';
   const notes = formData.get('notes')?.toString().trim().slice(0, 1000) ?? '';
+  const econt_office_code = formData.get('econt_office_code')?.toString().trim().slice(0, 20) ?? null;
   const cartJson = formData.get('cart')?.toString() ?? '[]';
 
   if (!customer_name) return { error: 'error_name' };
@@ -59,8 +60,8 @@ export async function createOrder(prevState, formData) {
   const confirmation_token = crypto.randomBytes(32).toString('hex');
 
   const insertOrder = db.prepare(`
-    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount, confirmation_token)
-    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount, @confirmation_token)
+    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount, confirmation_token, econt_office_code)
+    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount, @confirmation_token, @econt_office_code)
   `);
   const insertItem = db.prepare(`
     INSERT INTO order_items (order_id, product_id, qty, unit_price)
@@ -81,6 +82,7 @@ export async function createOrder(prevState, formData) {
       notes: notes || null,
       total_amount,
       confirmation_token,
+      econt_office_code: econt_office_code || null,
     });
     const order_id = result.lastInsertRowid;
     for (const item of verifiedItems) {

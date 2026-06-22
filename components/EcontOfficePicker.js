@@ -56,6 +56,7 @@ export default function EcontOfficePicker({ inputClass, onSelect }) {
         <>
           <input type="hidden" name="address_or_office" value={`${selected.name}, ${selected.address}`} />
           <input type="hidden" name="city" value={selected.city} />
+          <input type="hidden" name="econt_office_code" value={selected.code} />
         </>
       )}
 

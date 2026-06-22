@@ -25,6 +25,9 @@ const schema = `
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
     total_amount REAL NOT NULL,
     confirmation_token TEXT,
+    econt_office_code TEXT,
+    econt_shipment_number TEXT,
+    econt_waybill_url TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
