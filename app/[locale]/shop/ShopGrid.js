@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
+import { useCart } from '@/context/CartContext';
 
 export default function ShopGrid({ products, initialCategory }) {
   const t = useTranslations('shop');
@@ -55,14 +56,19 @@ export default function ShopGrid({ products, initialCategory }) {
 }
 
 function ProductCard({ product, locale, t }) {
+  const { addItem } = useCart();
   const isHoney = product.category === 'honey';
   const name = locale === 'bg' ? product.name_bg : product.name_en;
   const description = locale === 'bg' ? product.description_bg : product.description_en;
   const inStock = product.stock_qty > 0;
 
+  function handleAddToCart(e) {
+    e.preventDefault();
+    addItem(product, locale);
+  }
+
   return (
     <Link href={`/${locale}/shop/${product.id}`} className="card-product block group">
-      {/* Image placeholder */}
       <div
         className={[
           'card-image-placeholder',
@@ -72,7 +78,6 @@ function ProductCard({ product, locale, t }) {
         <div className="w-16 h-16 rounded-full bg-white/30" />
       </div>
 
-      {/* Card body */}
       <div className="card-body">
         <span className={isHoney ? 'badge-honey' : 'badge-mead'}>
           {isHoney ? t('filter_honey') : t('filter_mead')}
@@ -95,19 +100,20 @@ function ProductCard({ product, locale, t }) {
             {Number(product.price_bgn).toFixed(2)}{' '}
             <span className="text-sm font-medium text-stone-500">{t('bgn')}</span>
           </span>
-          <span
+          <button
+            onClick={handleAddToCart}
+            disabled={!inStock}
             className={[
-              'font-body text-sm font-semibold px-3 py-1.5 rounded-md',
+              'font-body text-sm font-semibold px-3 py-1.5 rounded-md transition-colors duration-180',
               inStock
                 ? isHoney
-                  ? 'bg-honey-500 text-white'
-                  : 'bg-mead-500 text-white'
+                  ? 'bg-honey-500 text-white hover:bg-honey-600'
+                  : 'bg-mead-500 text-white hover:bg-mead-600'
                 : 'bg-cream-200 text-stone-500 cursor-not-allowed',
             ].join(' ')}
-            onClick={(e) => e.preventDefault()}
           >
             {inStock ? t('add_to_cart') : t('out_of_stock')}
-          </span>
+          </button>
         </div>
       </div>
     </Link>

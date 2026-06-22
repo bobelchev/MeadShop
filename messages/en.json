@@ -43,5 +43,15 @@
     "out_of_stock": "Out of stock",
     "empty": "No products found.",
     "bgn": "BGN"
+  },
+  "product": {
+    "back_to_shop": "← Back to shop",
+    "add_to_cart": "Add to cart",
+    "out_of_stock": "Out of stock",
+    "added": "Added!",
+    "bgn": "BGN",
+    "in_stock": "In stock",
+    "stock_qty": "{qty} in stock",
+    "not_found": "Product not found."
   }
 }
