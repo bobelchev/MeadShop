@@ -1,3 +1,5 @@
+import LoginForm from './LoginForm';
+
 export default function AdminLoginPage() {
-  return <p>Admin login — coming soon.</p>;
+  return <LoginForm />;
 }
