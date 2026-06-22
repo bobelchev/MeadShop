@@ -83,7 +83,7 @@ Admin panel is fully built:
 - NEVER generate, source, or insert placeholder/stock images into the `img` folders. Create the folder structure only (with `.gitkeep` files so git tracks the empty dirs) — real product photos are added manually later.
 
 ## Local Development
-- `.env` is committed with Railway production defaults (`DATABASE_PATH=/data/shop.db`, `RAILWAY_RUN_UID=0`). For local dev, create `.env.local` with `DATABASE_PATH=./data/shop.db` — Next.js loads `.env.local` last so it takes precedence.
+- `.env` is gitignored. For local dev, create `.env.local` with `DATABASE_PATH=./data/shop.db`. See `.env.example` for all available variables. Production values are set in Railway's Variables dashboard.
 - If `better-sqlite3` throws an ABI version mismatch after a Node upgrade, run `npm rebuild better-sqlite3`.
 - Locale routing lives in `proxy.js` (Next.js 16 renamed `middleware.js` → `proxy.js`). Do not create a `middleware.js`.
 - The root `img/` folder contains real product photos already tracked in git. It is distinct from `public/img/` (which has only `.gitkeep` placeholders for web-served images).
