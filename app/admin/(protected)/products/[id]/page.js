@@ -8,6 +8,10 @@ export default async function EditProductPage({ params }) {
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(Number(id));
   if (!product) notFound();
 
+  const images = db
+    .prepare('SELECT image_path FROM product_images WHERE product_id = ? ORDER BY sort_order')
+    .all(Number(id));
+
   return (
     <div>
       <nav className="flex items-center gap-6 mb-6 pb-4 border-b border-gray-200">
@@ -20,6 +24,7 @@ export default async function EditProductPage({ params }) {
       <ProductForm
         action={updateProduct.bind(null, product.id)}
         initialValues={product}
+        initialImages={images}
         title={`Edit: ${product.name_bg}`}
       />
     </div>

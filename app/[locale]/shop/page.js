@@ -9,9 +9,12 @@ export default async function ShopPage({ searchParams }) {
     ? params.category
     : 'all';
 
-  const products = db
-    .prepare('SELECT * FROM products WHERE active = 1 ORDER BY category, id')
-    .all();
+  const products = db.prepare(`
+    SELECT p.*,
+      (SELECT pi.image_path FROM product_images pi
+       WHERE pi.product_id = p.id ORDER BY pi.sort_order LIMIT 1) AS first_image
+    FROM products p WHERE p.active = 1 ORDER BY p.category, p.id
+  `).all();
 
   return (
     <div className="section max-w-7xl mx-auto">

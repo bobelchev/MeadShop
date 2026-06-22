@@ -15,5 +15,9 @@ export default async function ProductPage({ params }) {
     notFound();
   }
 
-  return <ProductDetail product={product} locale={locale} />;
+  const images = db
+    .prepare('SELECT image_path FROM product_images WHERE product_id = ? ORDER BY sort_order')
+    .all(Number(id));
+
+  return <ProductDetail product={product} locale={locale} images={images} />;
 }

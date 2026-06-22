@@ -29,16 +29,27 @@ function validate(f) {
   return null;
 }
 
+function saveImages(productId, formData) {
+  const raw = formData.get('images')?.toString().trim() ?? '';
+  const paths = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+  db.prepare('DELETE FROM product_images WHERE product_id = ?').run(productId);
+  const insertImg = db.prepare(
+    'INSERT INTO product_images (product_id, image_path, sort_order) VALUES (?, ?, ?)'
+  );
+  paths.forEach((path, i) => insertImg.run(productId, path, i));
+}
+
 export async function createProduct(prevState, formData) {
   const f = extractFields(formData);
   const error = validate(f);
   if (error) return { error };
 
-  db.prepare(`
+  const result = db.prepare(`
     INSERT INTO products (name_bg, name_en, category, variant, price_bgn, stock_qty, description_bg, description_en, active)
     VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty, @description_bg, @description_en, @active)
   `).run(f);
 
+  saveImages(result.lastInsertRowid, formData);
   redirect('/admin/products');
 }
 
@@ -55,6 +66,7 @@ export async function updateProduct(productId, prevState, formData) {
     WHERE id=@id
   `).run({ ...f, id: productId });
 
+  saveImages(productId, formData);
   revalidatePath('/admin/products');
   return { success: true };
 }

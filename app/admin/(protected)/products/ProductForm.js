@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 
-export default function ProductForm({ action, initialValues = {}, title }) {
+export default function ProductForm({ action, initialValues = {}, initialImages = [], title }) {
   const [state, formAction, pending] = useActionState(action, null);
 
   return (
@@ -72,6 +72,19 @@ export default function ProductForm({ action, initialValues = {}, title }) {
         <label className="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label>
         <textarea name="description_en" rows={3} defaultValue={initialValues.description_en ?? ''}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Images <span className="font-normal text-gray-400">(one path per line, e.g. /img/products/honey.jpg)</span>
+        </label>
+        <textarea
+          name="images"
+          rows={4}
+          defaultValue={initialImages.map((i) => i.image_path).join('\n')}
+          placeholder="/img/products/honey.jpg"
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+        />
       </div>
 
       <div className="flex items-center gap-2">

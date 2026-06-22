@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 
-export default function ProductDetail({ product, locale }) {
+export default function ProductDetail({ product, locale, images = [] }) {
   const t = useTranslations('product');
   const tShop = useTranslations('shop');
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1);
+  const [imgIdx, setImgIdx] = useState(0);
 
   const isHoney = product.category === 'honey';
   const name = locale === 'bg' ? product.name_bg : product.name_en;
@@ -35,15 +37,55 @@ export default function ProductDetail({ product, locale }) {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-10 mt-4">
-        {/* Image placeholder */}
-        <div
-          className={[
-            'rounded-xl aspect-square flex items-center justify-center',
-            isHoney ? 'bg-honey-placeholder' : 'bg-mead-placeholder',
-          ].join(' ')}
-        >
-          <div className="w-24 h-24 rounded-full bg-white/30" />
-        </div>
+        {/* Product image / slideshow */}
+        {images.length > 0 ? (
+          <div className="relative rounded-xl aspect-square overflow-hidden bg-cream-100">
+            <Image
+              src={images[imgIdx].image_path}
+              alt={name}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setImgIdx((i) => (i - 1 + images.length) % images.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow text-bark-700 flex items-center justify-center text-lg leading-none"
+                  aria-label="Previous image"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={() => setImgIdx((i) => (i + 1) % images.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow text-bark-700 flex items-center justify-center text-lg leading-none"
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setImgIdx(i)}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === imgIdx ? 'bg-honey-600' : 'bg-white/60 hover:bg-white/90'}`}
+                      aria-label={`Image ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div
+            className={[
+              'rounded-xl aspect-square flex items-center justify-center',
+              isHoney ? 'bg-honey-placeholder' : 'bg-mead-placeholder',
+            ].join(' ')}
+          >
+            <div className="w-24 h-24 rounded-full bg-white/30" />
+          </div>
+        )}
 
         {/* Product info */}
         <div className="flex flex-col gap-4">

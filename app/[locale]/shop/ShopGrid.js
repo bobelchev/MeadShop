@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 
@@ -69,14 +70,26 @@ function ProductCard({ product, locale, t }) {
 
   return (
     <Link href={`/${locale}/shop/${product.id}`} className="card-product block group">
-      <div
-        className={[
-          'card-image-placeholder',
-          isHoney ? 'bg-honey-placeholder' : 'bg-mead-placeholder',
-        ].join(' ')}
-      >
-        <div className="w-16 h-16 rounded-full bg-white/30" />
-      </div>
+      {product.first_image ? (
+        <div className="card-image-placeholder relative overflow-hidden bg-cream-100">
+          <Image
+            src={product.first_image}
+            alt={name}
+            fill
+            className="object-contain"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          />
+        </div>
+      ) : (
+        <div
+          className={[
+            'card-image-placeholder',
+            isHoney ? 'bg-honey-placeholder' : 'bg-mead-placeholder',
+          ].join(' ')}
+        >
+          <div className="w-16 h-16 rounded-full bg-white/30" />
+        </div>
+      )}
 
       <div className="card-body">
         <span className={isHoney ? 'badge-honey' : 'badge-mead'}>
