@@ -1,0 +1,60 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import db from '@/lib/db';
+
+const VALID_CATEGORIES = ['honey', 'mead'];
+
+function extractFields(formData) {
+  return {
+    name_bg: formData.get('name_bg')?.toString().trim() ?? '',
+    name_en: formData.get('name_en')?.toString().trim() ?? '',
+    category: formData.get('category')?.toString() ?? '',
+    variant: formData.get('variant')?.toString().trim() ?? '',
+    price_bgn: parseFloat(formData.get('price_bgn')?.toString() ?? '0'),
+    stock_qty: parseInt(formData.get('stock_qty')?.toString() ?? '0', 10),
+    description_bg: formData.get('description_bg')?.toString().trim() ?? '',
+    description_en: formData.get('description_en')?.toString().trim() ?? '',
+    active: formData.get('active') === 'on' ? 1 : 0,
+  };
+}
+
+function validate(f) {
+  if (!f.name_bg) return 'Bulgarian name is required.';
+  if (!f.name_en) return 'English name is required.';
+  if (!VALID_CATEGORIES.includes(f.category)) return 'Category must be honey or mead.';
+  if (isNaN(f.price_bgn) || f.price_bgn <= 0) return 'Price must be a positive number.';
+  if (isNaN(f.stock_qty) || f.stock_qty < 0) return 'Stock must be 0 or more.';
+  return null;
+}
+
+export async function createProduct(prevState, formData) {
+  const f = extractFields(formData);
+  const error = validate(f);
+  if (error) return { error };
+
+  db.prepare(`
+    INSERT INTO products (name_bg, name_en, category, variant, price_bgn, stock_qty, description_bg, description_en, active)
+    VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty, @description_bg, @description_en, @active)
+  `).run(f);
+
+  redirect('/admin/products');
+}
+
+export async function updateProduct(productId, prevState, formData) {
+  const f = extractFields(formData);
+  const error = validate(f);
+  if (error) return { error };
+
+  db.prepare(`
+    UPDATE products
+    SET name_bg=@name_bg, name_en=@name_en, category=@category, variant=@variant,
+        price_bgn=@price_bgn, stock_qty=@stock_qty, description_bg=@description_bg,
+        description_en=@description_en, active=@active
+    WHERE id=@id
+  `).run({ ...f, id: productId });
+
+  revalidatePath('/admin/products');
+  return { success: true };
+}
