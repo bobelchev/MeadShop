@@ -166,5 +166,11 @@
     "hours": "Monday – Friday, 9:00 – 18:00",
     "address_label": "Address",
     "address": "Plovdiv, Bulgaria"
+  },
+  "cookie_banner": {
+    "heading": "We use cookies",
+    "body": "This site uses only functional cookies: to confirm your age (required for alcoholic beverages), to remember your language preference, and to secure the admin area. We do not collect personal data and do not use tracking or advertising cookies.",
+    "accept": "Got it",
+    "more_info": "More information"
   }
 }
