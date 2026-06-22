@@ -9,7 +9,6 @@ const schema = `
     stock_qty INTEGER NOT NULL DEFAULT 0,
     description_bg TEXT,
     description_en TEXT,
-    image_path TEXT,
     active INTEGER NOT NULL DEFAULT 1
   );
 
