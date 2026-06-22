@@ -121,5 +121,20 @@
     "delivery_ekont_door": "Ekont — door delivery",
     "delivery_speedy_office": "Speedy — office pickup",
     "delivery_speedy_door": "Speedy — door delivery"
+  },
+  "wholesale": {
+    "heading": "Wholesale Inquiry",
+    "subheading": "For businesses and retailers — get in touch for wholesale pricing.",
+    "company_label": "Company",
+    "contact_label": "Contact person",
+    "phone_label": "Phone",
+    "email_label": "E-mail (optional)",
+    "volume_label": "Estimated volume (kg/month, optional)",
+    "message_label": "Message (optional)",
+    "submit": "Send inquiry",
+    "submitting": "Sending...",
+    "success_heading": "Inquiry received!",
+    "success_body": "We will contact you within 1–2 business days.",
+    "error_required": "Please fill in the required fields (company, contact person, phone)."
   }
 }
