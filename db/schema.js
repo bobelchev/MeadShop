@@ -28,6 +28,7 @@ const schema = `
     econt_office_code TEXT,
     econt_shipment_number TEXT,
     econt_waybill_url TEXT,
+    delivery_price_eur REAL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

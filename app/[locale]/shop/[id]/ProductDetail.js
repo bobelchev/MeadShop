@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { EUR_TO_BGN } from '@/lib/price';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { getLocalizedField } from '@/lib/i18n';
@@ -106,8 +107,8 @@ export default function ProductDetail({ product, locale, images = [] }) {
           )}
 
           <p className="font-body text-2xl font-bold text-bark-700">
-            {Number(product.price_bgn).toFixed(2)}{' '}
-            <span className="text-base font-medium text-stone-500">{t('bgn')}</span>
+            {(Number(product.price_bgn) / EUR_TO_BGN).toFixed(2)} EUR{' '}
+            <span className="text-base font-medium text-stone-500">({Number(product.price_bgn).toFixed(2)} {t('bgn')})</span>
           </p>
 
           <p className={`font-body text-sm ${inStock ? 'text-honey-700' : 'text-stone-400'}`}>

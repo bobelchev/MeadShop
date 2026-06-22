@@ -130,7 +130,9 @@
     "delivery_ekont_office": "Ekont — office pickup",
     "delivery_ekont_door": "Ekont — door delivery",
     "delivery_speedy_office": "Speedy — office pickup",
-    "delivery_speedy_door": "Speedy — door delivery"
+    "delivery_speedy_door": "Speedy — door delivery",
+    "products_subtotal": "Products",
+    "delivery_cost": "Delivery cost"
   },
   "wholesale": {
     "meta_title": "Wholesale — Pchelin Med",

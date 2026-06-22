@@ -19,6 +19,8 @@ export async function createOrder(prevState, formData) {
   const city = formData.get('city')?.toString().trim().slice(0, 200) ?? '';
   const notes = formData.get('notes')?.toString().trim().slice(0, 1000) ?? '';
   const econt_office_code = formData.get('econt_office_code')?.toString().trim().slice(0, 20) ?? null;
+  const delivery_price_eur_raw = formData.get('delivery_price_eur')?.toString().trim() ?? '';
+  const delivery_price_eur = delivery_price_eur_raw ? parseFloat(delivery_price_eur_raw) : null;
   const cartJson = formData.get('cart')?.toString() ?? '[]';
 
   if (!customer_name) return { error: 'error_name' };
@@ -60,8 +62,8 @@ export async function createOrder(prevState, formData) {
   const confirmation_token = crypto.randomBytes(32).toString('hex');
 
   const insertOrder = db.prepare(`
-    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount, confirmation_token, econt_office_code)
-    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount, @confirmation_token, @econt_office_code)
+    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount, confirmation_token, econt_office_code, delivery_price_eur)
+    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount, @confirmation_token, @econt_office_code, @delivery_price_eur)
   `);
   const insertItem = db.prepare(`
     INSERT INTO order_items (order_id, product_id, qty, unit_price)
@@ -83,6 +85,7 @@ export async function createOrder(prevState, formData) {
       total_amount,
       confirmation_token,
       econt_office_code: econt_office_code || null,
+      delivery_price_eur: delivery_price_eur ?? null,
     });
     const order_id = result.lastInsertRowid;
     for (const item of verifiedItems) {

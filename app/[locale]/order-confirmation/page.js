@@ -2,6 +2,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import db from '@/lib/db';
+import { EUR_TO_BGN } from '@/lib/price';
 import CartClearer from './CartClearer';
 
 const DELIVERY_KEY_MAP = {
@@ -57,12 +58,30 @@ export default async function OrderConfirmationPage({ searchParams }) {
         <SummaryRow label={t('delivery')} value={t(deliveryKey)} />
         <SummaryRow label={t('address')} value={order.address_or_office} />
         <SummaryRow label={t('city')} value={order.city} />
-        <div className="border-t border-cream-200 pt-3 mt-1">
-          <SummaryRow
-            label={t('total')}
-            value={`${Number(order.total_amount).toFixed(2)} ${t('bgn')}`}
-            bold
-          />
+        <div className="border-t border-cream-200 pt-3 mt-1 flex flex-col gap-2">
+          {order.delivery_price_eur != null ? (
+            <>
+              <SummaryRow
+                label={t('products_subtotal')}
+                value={`${(Number(order.total_amount) / EUR_TO_BGN).toFixed(2)} EUR (${Number(order.total_amount).toFixed(2)} ${t('bgn')})`}
+              />
+              <SummaryRow
+                label={t('delivery_cost')}
+                value={`${Number(order.delivery_price_eur).toFixed(2)} EUR (${(order.delivery_price_eur * EUR_TO_BGN).toFixed(2)} ${t('bgn')})`}
+              />
+              <SummaryRow
+                label={t('total')}
+                value={`${(Number(order.total_amount) / EUR_TO_BGN + order.delivery_price_eur).toFixed(2)} EUR (${(Number(order.total_amount) + order.delivery_price_eur * EUR_TO_BGN).toFixed(2)} ${t('bgn')})`}
+                bold
+              />
+            </>
+          ) : (
+            <SummaryRow
+              label={t('total')}
+              value={`${(Number(order.total_amount) / EUR_TO_BGN).toFixed(2)} EUR (${Number(order.total_amount).toFixed(2)} ${t('bgn')})`}
+              bold
+            />
+          )}
         </div>
       </div>
 

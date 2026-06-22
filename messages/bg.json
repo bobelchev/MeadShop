@@ -130,7 +130,9 @@
     "delivery_ekont_office": "Еконт — до офис",
     "delivery_ekont_door": "Еконт — до врата",
     "delivery_speedy_office": "Спиди — до офис",
-    "delivery_speedy_door": "Спиди — до врата"
+    "delivery_speedy_door": "Спиди — до врата",
+    "products_subtotal": "Продукти",
+    "delivery_cost": "Цена на доставката"
   },
   "wholesale": {
     "meta_title": "Търговия на едро — Пчелин Мед",

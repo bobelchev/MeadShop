@@ -3,6 +3,7 @@
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { EUR_TO_BGN } from '@/lib/price';
 
 export default function CartPage() {
   const t = useTranslations('cart');
@@ -42,7 +43,7 @@ export default function CartPage() {
             <div className="flex-1 min-w-0">
               <p className="font-body font-semibold text-bark-700 truncate">{item.name}</p>
               <p className="font-body text-sm text-stone-500">
-                {Number(item.price_bgn).toFixed(2)} {t('bgn')}
+                {(Number(item.price_bgn) / EUR_TO_BGN).toFixed(2)} EUR ({Number(item.price_bgn).toFixed(2)} {t('bgn')})
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -63,7 +64,7 @@ export default function CartPage() {
               </button>
             </div>
             <p className="font-body font-bold text-bark-700 w-20 text-right">
-              {(item.qty * item.price_bgn).toFixed(2)} {t('bgn')}
+              {(item.qty * item.price_bgn / EUR_TO_BGN).toFixed(2)} EUR ({(item.qty * item.price_bgn).toFixed(2)} {t('bgn')})
             </p>
             <button
               onClick={() => removeItem(item.id)}
@@ -80,7 +81,7 @@ export default function CartPage() {
         <div>
           <p className="font-body text-stone-500 text-sm">{t('items_count', { count: totalItems })}</p>
           <p className="font-display text-2xl font-bold text-bark-700">
-            {t('total')}: {totalPrice.toFixed(2)} {t('bgn')}
+            {t('total')}: {(totalPrice / EUR_TO_BGN).toFixed(2)} EUR ({totalPrice.toFixed(2)} {t('bgn')})
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">

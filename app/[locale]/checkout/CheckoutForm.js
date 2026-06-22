@@ -5,8 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useCart } from '@/context/CartContext';
 import { createOrder } from './actions';
 import EcontOfficePicker from '@/components/EcontOfficePicker';
-
-const EUR_TO_BGN = 1.95583; // fixed BNB peg rate
+import { EUR_TO_BGN } from '@/lib/price';
 
 const DELIVERY_OPTIONS = [
   { value: 'ekont_office',  key: 'delivery_ekont_office' },
@@ -43,6 +42,15 @@ export default function CheckoutForm() {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="cart" value={JSON.stringify(items)} />
+      <input
+        type="hidden"
+        name="delivery_price_eur"
+        value={
+          deliveryPrice && deliveryPrice !== 'loading' && deliveryPrice !== 'error'
+            ? String(deliveryPrice.price)
+            : ''
+        }
+      />
 
       {state?.error && (
         <div className="bg-mead-100 border border-mead-300 text-mead-700 rounded-md px-4 py-3 font-body text-sm">
@@ -185,18 +193,18 @@ export default function CheckoutForm() {
         {deliveryPrice && deliveryPrice !== 'loading' && deliveryPrice !== 'error' ? (
           <div className="flex flex-col gap-1">
             <p className="font-body text-sm text-bark-500">
-              {t('products_subtotal')}: {totalPrice.toFixed(2)} {t('bgn')}
+              {t('products_subtotal')}: {(totalPrice / EUR_TO_BGN).toFixed(2)} EUR ({totalPrice.toFixed(2)} {t('bgn')})
             </p>
             <p className="font-body text-sm text-bark-500">
               {t('delivery_price_label')}: {deliveryPrice.price.toFixed(2)} EUR ({(deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')})
             </p>
             <p className="font-display text-xl font-bold text-bark-700 mt-1">
-              {t('total')}: {(totalPrice + deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')}
+              {t('total')}: {(totalPrice / EUR_TO_BGN + deliveryPrice.price).toFixed(2)} EUR ({(totalPrice + deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')})
             </p>
           </div>
         ) : (
           <p className="font-display text-xl font-bold text-bark-700">
-            {t('total')}: {totalPrice.toFixed(2)} {t('bgn')}
+            {t('total')}: {(totalPrice / EUR_TO_BGN).toFixed(2)} EUR ({totalPrice.toFixed(2)} {t('bgn')})
           </p>
         )}
       </div>
