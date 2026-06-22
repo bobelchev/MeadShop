@@ -13,7 +13,7 @@ B2C e-commerce site selling honey and mead (fermented honey alcohol), Bulgarian 
 - DB: SQLite via `better-sqlite3`, accessed directly from Route Handlers / Server Actions
 - Deployment: Railway, single service
 
-Config is `next.config.mjs` (ESM). It must keep `serverExternalPackages: ['better-sqlite3']` — removing this breaks the native module in the Next.js build.
+Config is `next.config.mjs` (ESM). It must keep `serverExternalPackages: ['better-sqlite3', 'nodemailer']` — these native/CJS modules must be excluded from the webpack bundle or the build breaks.
 
 ## Commands
 ```bash
