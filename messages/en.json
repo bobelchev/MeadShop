@@ -135,13 +135,19 @@
     "contact_label": "Contact person",
     "phone_label": "Phone",
     "email_label": "E-mail (optional)",
-    "volume_label": "Estimated volume (kg/month, optional)",
-    "message_label": "Message (optional)",
+    "products_heading": "Select products",
+    "products_subheading": "Add the products you are interested in and specify the desired quantity.",
+    "product_add": "Add",
+    "product_remove": "Remove",
+    "qty_label": "Quantity (units)",
+    "note_placeholder": "Question about this product... (optional)",
+    "no_products": "You haven't selected any products yet.",
     "submit": "Send inquiry",
     "submitting": "Sending...",
     "success_heading": "Inquiry received!",
     "success_body": "We will contact you within 1–2 business days.",
-    "error_required": "Please fill in the required fields (company, contact person, phone)."
+    "error_required": "Please fill in the required fields (company, contact person, phone).",
+    "error_no_products": "Please select at least one product."
   },
   "about": {
     "meta_title": "About Us — Pchelin Med",
