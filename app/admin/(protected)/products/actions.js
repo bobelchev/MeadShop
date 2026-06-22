@@ -91,6 +91,11 @@ export async function updateProduct(productId, prevState, formData) {
 }
 
 export async function deleteProduct(productId) {
+  const hasOrders = db
+    .prepare('SELECT 1 FROM order_items WHERE product_id = ? LIMIT 1')
+    .get(productId);
+  if (hasOrders) throw new Error('Cannot delete a product that appears in existing orders. Set it to inactive instead.');
+
   const images = db
     .prepare('SELECT image_path FROM product_images WHERE product_id = ?')
     .all(productId);
