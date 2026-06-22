@@ -1,12 +1,17 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 
 export default function ProductForm({ action, initialValues = {}, initialImages = [], title }) {
   const [state, formAction, pending] = useActionState(action, null);
+  const [images, setImages] = useState(initialImages.map((i) => i.image_path));
+
+  function removeImage(path) {
+    setImages((imgs) => imgs.filter((p) => p !== path));
+  }
 
   return (
-    <form action={formAction} className="max-w-2xl space-y-4">
+    <form action={formAction} encType="multipart/form-data" className="max-w-2xl space-y-4">
       <h1 className="text-xl font-bold text-gray-800 mb-6">{title}</h1>
 
       {state?.error && (
@@ -74,17 +79,39 @@ export default function ProductForm({ action, initialValues = {}, initialImages 
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       </div>
 
+      {/* Image management */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Images <span className="font-normal text-gray-400">(one path per line, e.g. /img/products/honey.jpg)</span>
-        </label>
-        <textarea
-          name="images"
-          rows={4}
-          defaultValue={initialImages.map((i) => i.image_path).join('\n')}
-          placeholder="/img/products/honey.jpg"
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+        <label className="block text-sm font-medium text-gray-700 mb-2">Images</label>
+
+        {images.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-3">
+            {images.map((imgPath) => (
+              <div key={imgPath} className="relative w-24 h-24 rounded border border-gray-200 overflow-hidden bg-gray-50">
+                {/* hidden input keeps this path in the submitted form */}
+                <input type="hidden" name="keptImages" value={imgPath} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imgPath} alt="" className="w-full h-full object-contain" />
+                <button
+                  type="button"
+                  onClick={() => removeImage(imgPath)}
+                  className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs font-bold leading-none flex items-center justify-center"
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <input
+          type="file"
+          name="newImages"
+          multiple
+          accept="image/*"
+          className="block text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-800 file:text-white hover:file:bg-gray-700 cursor-pointer"
         />
+        <p className="text-xs text-gray-400 mt-1">Select one or more image files to upload.</p>
       </div>
 
       <div className="flex items-center gap-2">

@@ -1,5 +1,7 @@
 'use server';
 
+import fs from 'fs';
+import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import db from '@/lib/db';
@@ -29,14 +31,29 @@ function validate(f) {
   return null;
 }
 
-function saveImages(productId, formData) {
-  const raw = formData.get('images')?.toString().trim() ?? '';
-  const paths = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+async function saveProductImages(productId, formData) {
+  const keptPaths = formData.getAll('keptImages').map((s) => s.toString()).filter(Boolean);
+
+  const uploadDir = path.join(process.cwd(), 'public', 'img', 'products');
+  fs.mkdirSync(uploadDir, { recursive: true });
+
+  const newFiles = formData.getAll('newImages');
+  const newPaths = [];
+  for (const file of newFiles) {
+    if (!file || file.size === 0) continue;
+    const ext = path.extname(file.name) || '.jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    fs.writeFileSync(path.join(uploadDir, filename), buffer);
+    newPaths.push(`/img/products/${filename}`);
+  }
+
+  const allPaths = [...keptPaths, ...newPaths];
   db.prepare('DELETE FROM product_images WHERE product_id = ?').run(productId);
   const insertImg = db.prepare(
     'INSERT INTO product_images (product_id, image_path, sort_order) VALUES (?, ?, ?)'
   );
-  paths.forEach((path, i) => insertImg.run(productId, path, i));
+  allPaths.forEach((p, i) => insertImg.run(productId, p, i));
 }
 
 export async function createProduct(prevState, formData) {
@@ -49,7 +66,7 @@ export async function createProduct(prevState, formData) {
     VALUES (@name_bg, @name_en, @category, @variant, @price_bgn, @stock_qty, @description_bg, @description_en, @active)
   `).run(f);
 
-  saveImages(result.lastInsertRowid, formData);
+  await saveProductImages(result.lastInsertRowid, formData);
   redirect('/admin/products');
 }
 
@@ -66,7 +83,7 @@ export async function updateProduct(productId, prevState, formData) {
     WHERE id=@id
   `).run({ ...f, id: productId });
 
-  saveImages(productId, formData);
+  await saveProductImages(productId, formData);
   revalidatePath('/admin/products');
   return { success: true };
 }
