@@ -19,17 +19,29 @@ export async function createWholesaleInquiry(prevState, formData) {
   } catch {
     selections = [];
   }
-
   if (!Array.isArray(selections) || selections.length === 0) {
     return { error: 'error_no_products' };
   }
 
+  const ids = selections.map((s) => parseInt(s.id)).filter(Boolean);
+  const placeholders = ids.map(() => '?').join(',');
+  const dbProducts = ids.length
+    ? db.prepare(`SELECT id, name_bg FROM products WHERE id IN (${placeholders}) AND active = 1`).all(...ids)
+    : [];
+  const productMap = Object.fromEntries(dbProducts.map((p) => [p.id, p]));
+
   const message = selections
+    .filter((s) => productMap[parseInt(s.id)])
     .map((s) => {
-      const base = `${s.name} × ${s.qty}`;
-      return s.note?.trim() ? `${base} [${s.note.trim()}]` : base;
+      const name = productMap[parseInt(s.id)].name_bg;
+      const qty = Math.max(1, parseInt(s.qty) || 1);
+      const note = s.note?.toString().trim().slice(0, 500) ?? '';
+      const base = `${name} × ${qty}`;
+      return note ? `${base} [${note}]` : base;
     })
     .join(', ');
+
+  if (!message) return { error: 'error_no_products' };
 
   db.prepare(`
     INSERT INTO wholesale_inquiries (company_name, contact_name, phone, email, message, status)

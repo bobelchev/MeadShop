@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import db from '@/lib/db';
 import WholesaleForm from './WholesaleForm';
 
+export const dynamic = 'force-dynamic';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
 
 export async function generateMetadata({ params }) {
