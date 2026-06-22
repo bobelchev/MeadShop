@@ -1,5 +1,7 @@
 import db from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
 const LOCALES = ['bg', 'en'];
 const STATIC_PATHS = ['', '/shop', '/about', '/contact', '/wholesale'];
