@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import Header from '@/components/Header';
 import CookieBanner from '@/components/CookieBanner';
+import SplashScreen from '@/components/SplashScreen';
 import { CartProvider } from '@/context/CartContext';
 
 export default async function LocaleLayout({ children, params }) {
@@ -15,6 +16,7 @@ export default async function LocaleLayout({ children, params }) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <CartProvider>
         <div className="min-h-screen flex flex-col">
+          <SplashScreen />
           <Header />
           <main className="flex-1">{children}</main>
           <footer className="py-4 text-center text-xs text-stone-400">
