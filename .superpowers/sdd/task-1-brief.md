@@ -1,97 +1,59 @@
-### Task 1: Initialize project, git, and dependencies
+### Task 1: Stock deduction on checkout
 
 **Files:**
-- Create: standard Next.js scaffold (via create-next-app)
-- Modify: `next.config.mjs`
-- Create: `.gitignore`, `.env.local`
+- Modify: `app/[locale]/checkout/actions.js`
 
-- [ ] **Step 1: Run create-next-app**
+**Interfaces:**
+- Consumes: existing `createOrder()` server action and its transaction
+- Produces: stock_qty is decremented atomically with order insert
 
-Run from `C:\Users\bobel\Desktop\ClaudeTestProject\MeadShop`:
+- [ ] **Step 1: Add stock deduction inside the existing transaction**
+
+In `app/[locale]/checkout/actions.js`, add one prepared statement and run it inside `createOrderTx`. The full updated transaction block (lines 66–82):
+
+```js
+const insertOrder = db.prepare(`
+  INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount)
+  VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount)
+`);
+const insertItem = db.prepare(`
+  INSERT INTO order_items (order_id, product_id, qty, unit_price)
+  VALUES (@order_id, @product_id, @qty, @unit_price)
+`);
+const deductStock = db.prepare(
+  'UPDATE products SET stock_qty = MAX(0, stock_qty - ?) WHERE id = ?'
+);
+
+const createOrderTx = db.transaction(() => {
+  const result = insertOrder.run({
+    customer_name,
+    phone,
+    email: email || null,
+    delivery_method,
+    address_or_office,
+    city,
+    notes: notes || null,
+    total_amount,
+  });
+  const order_id = result.lastInsertRowid;
+  for (const item of verifiedItems) {
+    insertItem.run({ order_id, ...item });
+    deductStock.run(item.qty, item.product_id);
+  }
+  return order_id;
+});
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Run `npm run dev`. Add a product to cart, go to checkout, place an order. Then in the admin at `/admin/products`, confirm that product's stock qty decreased by the quantity ordered.
+
+- [ ] **Step 3: Commit**
 
 ```bash
-npx create-next-app@latest . --js --app --tailwind --eslint --no-src-dir --import-alias "@/*" --use-npm --yes
+git add app/[locale]/checkout/actions.js
+git commit -m "feat: deduct stock_qty atomically when order is placed"
 ```
-
-Expected: `Success! Created app at ...` — `package.json`, `app/`, `public/`, `tailwind.config.js`, etc. appear. The existing `CLAUDE.md` and `img/` are untouched.
-
-If create-next-app refuses the non-empty directory: answer `y` at the "proceed anyway?" prompt, or omit `--yes` and answer interactively.
-
-> **Windows note:** `better-sqlite3` (installed next) is a native Node addon requiring C++ build tools. If the install fails with node-gyp errors, install them first:
-> `npm install --global windows-build-tools`
-> Or via Visual Studio Installer → "Desktop development with C++" workload.
-
-- [ ] **Step 2: Install extra dependencies**
-
-```bash
-npm install next-intl@3 better-sqlite3
-```
-
-Expected: both packages appear in `package.json` dependencies.
-
-- [ ] **Step 3: Replace next.config.mjs**
-
-```javascript
-import createNextIntlPlugin from 'next-intl/plugin';
-
-const withNextIntl = createNextIntlPlugin('./i18n/request.js');
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  serverExternalPackages: ['better-sqlite3'],
-};
-
-export default withNextIntl(nextConfig);
-```
-
-- [ ] **Step 4: Create .env.local**
-
-```
-DATABASE_PATH=./data/shop.db
-```
-
-- [ ] **Step 5: Create .gitignore**
-
-```
-# dependencies
-/node_modules/
-
-# next.js
-/.next/
-/out/
-
-# env files
-.env.local
-.env*.local
-
-# db runtime data (created at runtime, not source)
-/data/
-
-# OS
-.DS_Store
-Thumbs.db
-```
-
-- [ ] **Step 6: Delete default Next.js placeholder files**
-
-Delete `app/page.js` (the Next.js welcome page — replaced by `app/[locale]/page.js` in Task 2).
-Delete `public/next.svg` and `public/vercel.svg` (default SVGs).
-
-- [ ] **Step 7: Initialize git and make initial commit**
-
-```bash
-git init
-git add CLAUDE.md img/ .gitignore next.config.mjs package.json package-lock.json tailwind.config.js postcss.config.mjs app/globals.css app/layout.js .eslintrc.json
-git commit -m "chore: initialize Next.js 15 project with Tailwind"
-```
-
-- [ ] **Step 8: Verify dev server starts**
-
-```bash
-npm run dev
-```
-
-Expected: server starts at `http://localhost:3000`. You'll get a 404 (we deleted the default page — that's fine). No compilation errors in the terminal. Stop with Ctrl+C.
 
 ---
 

@@ -1,35 +1,23 @@
-# SDD Progress Ledger — Project Skeleton
+# SDD Progress Ledger — Shop Completion
 
-Plan: docs/superpowers/plans/2026-06-21-project-skeleton.md
-Started: 2026-06-21
-Status: COMPLETE
+Plan: docs/superpowers/plans/2026-06-22-shop-completion.md
+Started: 2026-06-22
+Branch base: fe8b5aba70c5b8bc4a2d782f86968ad9506a2e44
 
 ## Tasks
 
-- [x] Task 1: Initialize project, git, and dependencies
-- [x] Task 2: Set up next-intl and [locale] routing
-- [x] Task 3: Header with LanguageToggle
-- [x] Task 4: Database layer
-- [x] Task 5: Scaffold all pages, API stubs, and image folders
+- [ ] Task 1: Stock deduction on checkout
+- [ ] Task 2: Admin order detail view
+- [ ] Task 3: Wholesale i18n strings update
+- [ ] Task 4: Wholesale product picker
+- [ ] Task 5: Drop orphaned image_path column
+- [ ] Task 6: Final push
 
 ## Completed
-
-Task 1: complete (commits 9ac5508..8a4f75e, review clean after fixes)
-  - Landed on Next.js 14.2.35 (Node 18 ceiling)
-  - Post-review fixes: experimental.serverComponentsExternalPackages; CLAUDE.md db path
-  - Minor: images in root img/ were committed (plan-mandated; real user photos, not placeholders)
-
-Task 2: complete (commits 30334e9..3b84481, review clean after fix)
-  - Used requestLocale async API (correct for next-intl@3 latest)
-  - Post-review fix: added `?? 'bg'` fallback in i18n/request.js
-
-Task 3: complete (commit 76845f4, review clean)
-  - Minor noted: locale swap uses string replace (safe for this structure; regex would be more robust)
-
-Task 4: complete (commit 860ccb0, review clean)
-  - All 4 tables created; CJS/ESM module split correct; seed inserts 3 products
-
-Task 5: complete (commit 863cd11, review clean)
-  - 18/18 routes verified; all .gitkeep files 0 bytes; no images added
-
-Final: 7 commits total (9ac5508..863cd11), all task reviews Approved
+Task 1: complete (commits fe8b5ab..9199380, review clean)
+Task 2: complete (commits 9199380..aae1be5, review clean)
+Task 3: complete (commits aae1be5..19eaba3, review clean)
+Task 4: complete (commits 19eaba3..87cc584, review clean — minor: лв. hardcoded in EN locale, ✓ not translated)
+Task 5: complete (commits 87cc584..16a674a, review clean)
+Task 4 fixes: complete (commit f02ddea, review clean — force-dynamic + server-side validation)
+Branch complete: fe8b5ab..f02ddea (7 commits)

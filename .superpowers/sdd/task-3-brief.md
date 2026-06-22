@@ -1,106 +1,77 @@
-### Task 3: Header with LanguageToggle
+### Task 3: Wholesale i18n strings update
 
 **Files:**
-- Create: `components/LanguageToggle.js`, `components/Header.js`
-- Modify: `app/[locale]/layout.js`
+- Modify: `messages/bg.json`
+- Modify: `messages/en.json`
 
-- [ ] **Step 1: Create components/LanguageToggle.js**
+**Interfaces:**
+- Produces: new keys used by Task 4's WholesaleForm
 
-```javascript
-'use client';
+- [ ] **Step 1: Update `messages/bg.json` wholesale namespace**
 
-import { useLocale } from 'next-intl';
-import { usePathname } from 'next/navigation';
+Replace the entire `"wholesale"` block with:
 
-export default function LanguageToggle() {
-  const locale = useLocale();
-  const pathname = usePathname();
-  const otherLocale = locale === 'bg' ? 'en' : 'bg';
-  // Swap the locale segment: /bg/shop → /en/shop
-  const newPath = pathname.replace(`/${locale}`, `/${otherLocale}`);
-
-  return (
-    <a href={newPath} className="text-sm font-semibold underline">
-      {otherLocale.toUpperCase()}
-    </a>
-  );
+```json
+"wholesale": {
+  "meta_title": "Търговия на едро — Пчелин Мед",
+  "meta_description": "Запитване за търговия на едро с мед и медовина.",
+  "heading": "Запитване на едро",
+  "subheading": "За корпоративни клиенти и търговци — свържете се с нас за условия.",
+  "company_label": "Фирма",
+  "contact_label": "Лице за контакт",
+  "phone_label": "Телефон",
+  "email_label": "E-mail (незадължително)",
+  "products_heading": "Изберете продукти",
+  "products_subheading": "Добавете продуктите, за които се интересувате, и посочете желаното количество.",
+  "product_add": "Добави",
+  "product_remove": "Премахни",
+  "qty_label": "Количество (бр.)",
+  "note_placeholder": "Въпрос за този продукт... (незадължително)",
+  "no_products": "Все още не сте избрали продукти.",
+  "submit": "Изпрати запитване",
+  "submitting": "Изпращане...",
+  "success_heading": "Получихме вашето запитване!",
+  "success_body": "Ще се свържем с вас в рамките на 1–2 работни дни.",
+  "error_required": "Моля, попълнете задължителните полета (фирма, лице за контакт, телефон).",
+  "error_no_products": "Моля, изберете поне един продукт."
 }
 ```
 
-- [ ] **Step 2: Create components/Header.js**
+- [ ] **Step 2: Update `messages/en.json` wholesale namespace**
 
-```javascript
-import { getTranslations, getLocale } from 'next-intl/server';
-import Link from 'next/link';
-import LanguageToggle from './LanguageToggle';
+Replace the entire `"wholesale"` block with:
 
-export default async function Header() {
-  const t = await getTranslations('nav');
-  const locale = await getLocale();
-
-  return (
-    <header className="border-b py-4 px-6 flex items-center justify-between">
-      <Link href={`/${locale}`} className="font-bold text-lg">
-        Мед &amp; Медовина
-      </Link>
-      <nav className="flex gap-6 items-center text-sm">
-        <Link href={`/${locale}/shop`}>{t('shop')}</Link>
-        <Link href={`/${locale}/wholesale`}>{t('wholesale')}</Link>
-        <Link href={`/${locale}/about`}>{t('about')}</Link>
-        <Link href={`/${locale}/contact`}>{t('contact')}</Link>
-        <Link href={`/${locale}/cart`}>{t('cart')}</Link>
-        <LanguageToggle />
-      </nav>
-    </header>
-  );
+```json
+"wholesale": {
+  "meta_title": "Wholesale — Pchelin Med",
+  "meta_description": "Wholesale inquiry for honey and mead.",
+  "heading": "Wholesale Inquiry",
+  "subheading": "For businesses and retailers — get in touch for wholesale pricing.",
+  "company_label": "Company",
+  "contact_label": "Contact person",
+  "phone_label": "Phone",
+  "email_label": "E-mail (optional)",
+  "products_heading": "Select products",
+  "products_subheading": "Add the products you are interested in and specify the desired quantity.",
+  "product_add": "Add",
+  "product_remove": "Remove",
+  "qty_label": "Quantity (units)",
+  "note_placeholder": "Question about this product... (optional)",
+  "no_products": "You haven't selected any products yet.",
+  "submit": "Send inquiry",
+  "submitting": "Sending...",
+  "success_heading": "Inquiry received!",
+  "success_body": "We will contact you within 1–2 business days.",
+  "error_required": "Please fill in the required fields (company, contact person, phone).",
+  "error_no_products": "Please select at least one product."
 }
 ```
 
-- [ ] **Step 3: Add Header to app/[locale]/layout.js**
-
-```javascript
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import Header from '@/components/Header';
-
-export default async function LocaleLayout({ children, params }) {
-  const { locale } = await params;
-  const messages = await getMessages();
-
-  return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-      </div>
-    </NextIntlClientProvider>
-  );
-}
-```
-
-- [ ] **Step 4: Verify header and language toggle**
+- [ ] **Step 3: Commit**
 
 ```bash
-npm run dev
-```
-
-Visit `http://localhost:3000/bg`:
-- Header shows "Мед & Медовина" and nav links in Bulgarian
-- "EN" link is visible in the header
-
-Click "EN":
-- URL changes to `http://localhost:3000/en`
-- Nav links are now in English: Shop, Wholesale, About, Contact, Cart
-- "BG" link is visible
-
-Click "BG":
-- Returns to `http://localhost:3000/bg` with Bulgarian nav
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add components/ app/[locale]/layout.js
-git commit -m "feat: add Header with LanguageToggle for locale switching"
+git add messages/bg.json messages/en.json
+git commit -m "feat: update wholesale i18n strings for product picker"
 ```
 
 ---

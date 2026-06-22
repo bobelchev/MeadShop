@@ -1,211 +1,46 @@
-### Task 5: Scaffold all pages, API stubs, and image folders
+### Task 5: Drop orphaned image_path column
 
-**Files:** All remaining pages, admin routes, API stubs, and `.gitkeep` files.
+**Files:**
+- Modify: `db/schema.js` — remove `image_path` column from products table
 
-- [ ] **Step 1: Create public image folders with .gitkeep**
+**Interfaces:**
+- Consumes: nothing (column is never written or read by app code)
+- Produces: clean schema without orphaned column
 
-Create three empty files:
-- `public/img/products/.gitkeep`
-- `public/img/hero/.gitkeep`
-- `public/img/brand/.gitkeep`
+Note: SQLite supports `ALTER TABLE DROP COLUMN` since 3.35. The Railway runtime uses a recent SQLite version. The `CREATE TABLE IF NOT EXISTS` in schema.js won't remove the column from existing DBs — only fresh DBs get the clean schema. For existing Railway DB, run `ALTER TABLE products DROP COLUMN image_path;` manually via Railway's shell once. Local dev: delete `data/shop.db` and run `npm run db:init`.
 
-Each file is completely empty (0 bytes). Do not add any image files.
+- [ ] **Step 1: Remove `image_path` from `db/schema.js`**
 
-- [ ] **Step 2: Create locale page placeholders**
+In `db/schema.js`, find the products table definition and remove the `image_path TEXT,` line:
 
-`app/[locale]/shop/page.js`:
-```javascript
-export default function ShopPage() {
-  return <p>Shop — coming soon.</p>;
-}
-```
-
-`app/[locale]/shop/[id]/page.js`:
-```javascript
-export default function ProductPage() {
-  return <p>Product detail — coming soon.</p>;
-}
-```
-
-`app/[locale]/cart/page.js`:
-```javascript
-export default function CartPage() {
-  return <p>Cart — coming soon.</p>;
-}
-```
-
-`app/[locale]/checkout/page.js`:
-```javascript
-export default function CheckoutPage() {
-  return <p>Checkout — coming soon.</p>;
-}
-```
-
-`app/[locale]/order-confirmation/page.js`:
-```javascript
-export default function OrderConfirmationPage() {
-  return <p>Order confirmed — coming soon.</p>;
-}
-```
-
-`app/[locale]/wholesale/page.js`:
-```javascript
-export default function WholesalePage() {
-  return <p>Wholesale inquiry — coming soon.</p>;
-}
-```
-
-`app/[locale]/about/page.js`:
-```javascript
-export default function AboutPage() {
-  return <p>About — coming soon.</p>;
-}
-```
-
-`app/[locale]/contact/page.js`:
-```javascript
-export default function ContactPage() {
-  return <p>Contact — coming soon.</p>;
-}
-```
-
-- [ ] **Step 3: Create admin layout and pages**
-
-`app/admin/layout.js`:
-```javascript
-export default function AdminLayout({ children }) {
-  return (
-    <html lang="bg">
-      <body>
-        <div className="min-h-screen bg-gray-50">
-          <div className="max-w-6xl mx-auto p-6">{children}</div>
-        </div>
-      </body>
-    </html>
+```js
+const schema = `
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name_bg TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('honey', 'mead')),
+    variant TEXT,
+    price_bgn REAL NOT NULL,
+    stock_qty INTEGER NOT NULL DEFAULT 0,
+    description_bg TEXT,
+    description_en TEXT,
+    active INTEGER NOT NULL DEFAULT 1
   );
-}
+  ...rest unchanged...
+`;
 ```
 
-Note: Admin has its own root layout because it bypasses the locale layout tree.
+- [ ] **Step 2: Verify dev server starts without error**
 
-`app/admin/login/page.js`:
-```javascript
-export default function AdminLoginPage() {
-  return <p>Admin login — coming soon.</p>;
-}
-```
+Delete `data/shop.db`, run `npm run db:init && npm run db:seed`, then `npm run dev`. Confirm admin products page loads and images still work (they come from `product_images` table, not this column).
 
-`app/admin/orders/page.js`:
-```javascript
-export default function AdminOrdersPage() {
-  return <p>Admin orders — coming soon.</p>;
-}
-```
-
-`app/admin/wholesale/page.js`:
-```javascript
-export default function AdminWholesalePage() {
-  return <p>Admin wholesale — coming soon.</p>;
-}
-```
-
-- [ ] **Step 4: Create API route stubs**
-
-`app/api/products/route.js`:
-```javascript
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  return NextResponse.json({ products: [] });
-}
-```
-
-`app/api/products/[id]/route.js`:
-```javascript
-import { NextResponse } from 'next/server';
-
-export async function GET(request, { params }) {
-  const { id } = await params;
-  return NextResponse.json({ product: null, id });
-}
-```
-
-`app/api/orders/route.js`:
-```javascript
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  return NextResponse.json({ orders: [] });
-}
-```
-
-`app/api/wholesale/route.js`:
-```javascript
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  return NextResponse.json({ inquiries: [] });
-}
-```
-
-- [ ] **Step 5: Verify all routes**
+- [ ] **Step 3: Commit**
 
 ```bash
-npm run dev
-```
-
-Check every route returns the expected response:
-
-| URL | Expected |
-|-----|----------|
-| `http://localhost:3000` | Redirects to `/bg` |
-| `http://localhost:3000/bg` | "Home — coming soon." with header |
-| `http://localhost:3000/en` | "Home — coming soon." with header (English nav) |
-| `http://localhost:3000/bg/shop` | "Shop — coming soon." |
-| `http://localhost:3000/bg/shop/1` | "Product detail — coming soon." |
-| `http://localhost:3000/bg/cart` | "Cart — coming soon." |
-| `http://localhost:3000/bg/checkout` | "Checkout — coming soon." |
-| `http://localhost:3000/bg/order-confirmation` | "Order confirmed — coming soon." |
-| `http://localhost:3000/bg/wholesale` | "Wholesale inquiry — coming soon." |
-| `http://localhost:3000/bg/about` | "About — coming soon." |
-| `http://localhost:3000/bg/contact` | "Contact — coming soon." |
-| `http://localhost:3000/admin/login` | "Admin login — coming soon." (no locale header) |
-| `http://localhost:3000/admin/orders` | "Admin orders — coming soon." |
-| `http://localhost:3000/admin/wholesale` | "Admin wholesale — coming soon." |
-| `http://localhost:3000/api/products` | `{"products":[]}` |
-| `http://localhost:3000/api/products/1` | `{"product":null,"id":"1"}` |
-| `http://localhost:3000/api/orders` | `{"orders":[]}` |
-| `http://localhost:3000/api/wholesale` | `{"inquiries":[]}` |
-
-Also verify: language toggle on `/bg/shop` navigates to `/en/shop` (not just `/en`).
-
-- [ ] **Step 6: Final commit**
-
-```bash
-git add app/ public/ docs/
-git commit -m "feat: scaffold all locale pages, admin pages, API stubs, and image folders"
+git add db/schema.js
+git commit -m "chore: drop orphaned image_path column from products schema"
 ```
 
 ---
 
-## Self-Review
-
-**Spec coverage:**
-- ✅ Next.js App Router, Tailwind CSS, JavaScript only (Task 1)
-- ✅ Git repo + .gitignore for Next.js (Task 1)
-- ✅ next-intl with bg/en, `[locale]` segment, locale toggle in header (Tasks 2–3)
-- ✅ SQLite schema matching CLAUDE.md data model, seed script, `db/init.js` (Task 4)
-- ✅ `DATABASE_PATH` env var, never hardcoded to `/data/shop.db` (Tasks 1, 4)
-- ✅ Empty image folders with `.gitkeep`, no placeholder images (Task 5)
-- ✅ All routes from CLAUDE.md scaffolded (Task 5)
-- ✅ Hard rules: no payment integration, no TypeScript, orders created as `pending`
-
-**Placeholder scan:** No TBDs or "implement later" in any step — all steps include concrete code or commands with expected output.
-
-**Consistency check:**
-- `db/schema.js` uses `module.exports` → `db/init.js` and `db/seed.js` use `require()` ✅
-- `lib/db.js` uses `import/export` (Next.js compiles it) ✅
-- All page paths match CLAUDE.md exactly (including `/order-confirmation` not `/order-confirmation/[id]`) ✅
-- All four DB tables match CLAUDE.md data model field-for-field ✅
-- Admin routes (`/admin/login`, `/admin/orders`, `/admin/wholesale`) are NOT under `[locale]` ✅
-- Middleware matcher excludes `/admin/*` from locale routing ✅
