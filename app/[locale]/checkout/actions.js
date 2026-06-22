@@ -62,6 +62,9 @@ export async function createOrder(prevState, formData) {
     INSERT INTO order_items (order_id, product_id, qty, unit_price)
     VALUES (@order_id, @product_id, @qty, @unit_price)
   `);
+  const deductStock = db.prepare(
+    'UPDATE products SET stock_qty = MAX(0, stock_qty - ?) WHERE id = ?'
+  );
 
   const createOrderTx = db.transaction(() => {
     const result = insertOrder.run({
@@ -77,6 +80,7 @@ export async function createOrder(prevState, formData) {
     const order_id = result.lastInsertRowid;
     for (const item of verifiedItems) {
       insertItem.run({ order_id, ...item });
+      deductStock.run(item.qty, item.product_id);
     }
     return order_id;
   });
