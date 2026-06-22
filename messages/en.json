@@ -194,7 +194,7 @@
     "meta_description": "How we store and use your personal data.",
     "heading": "Privacy Policy",
     "controller_heading": "1. Data Controller",
-    "controller_body": "[TO BE FILLED: Company name, registration number, registered address, phone, contact email.]",
+    "controller_body": "Agricultural Holding Pencho Irikov (ЗС Пенчо Ириков), registration no. 179 728 092, 1 Beroe Str., fl. 10, apt. 40, Stara Zagora, Bulgaria. Phone: +359 88 843 8041. Email: irikovhoney@gmail.com.",
     "data_collected_heading": "2. Data We Collect",
     "data_collected_body": "When placing an order we collect: full name, phone number, email (optional), delivery address and city. For wholesale inquiries: company name, contact person, phone and email (optional).",
     "lawful_basis_heading": "3. Legal Basis",
@@ -202,12 +202,12 @@
     "recipients_heading": "4. Recipients",
     "recipients_body": "Delivery information is shared with the courier company (Econt or Speedy) chosen by the customer. We do not sell or share your data with third parties for marketing purposes.",
     "retention_heading": "5. Retention Period",
-    "retention_body": "[TO BE FILLED: Order data is retained for … years. Wholesale inquiries are deleted … after closure.]",
+    "retention_body": "Order data is retained for 5 (five) years in accordance with Bulgarian accounting legislation. Wholesale inquiries are deleted within 2 years of closure.",
     "rights_heading": "6. Your Rights",
     "rights_body": "You have the right to access, rectify, erase, and port your personal data, as well as the right to lodge a complaint with the Commission for Personal Data Protection (www.cpdp.bg). Contact us for any requests.",
     "cookies_heading": "7. Cookies",
     "cookies_body": "This site uses only technically necessary cookies: age verification confirmation, language preferences, and admin session security. No analytics or marketing cookies are used.",
     "contact_heading": "8. Contact",
-    "contact_body": "[TO BE FILLED: email or form for GDPR requests]"
+    "contact_body": "For questions about your personal data, contact us at: irikovhoney@gmail.com or +359 88 843 8041."
   }
 }
