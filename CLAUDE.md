@@ -38,27 +38,42 @@ npm run db:seed   # inserts 3 sample products; optional
 ### DB access pattern
 `lib/db.js` exports a **lazy** singleton via a `Proxy`. The DB connection is created on first property access, not at module import. This lets `next build` succeed even when `DATABASE_PATH` isn't set in the build environment. Callers use the export identically to a real `Database` instance — the Proxy is transparent.
 
-`db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS. `db/schema.js` is a CJS module that exports the raw SQL string as `module.exports.schema`; `init.js` requires it and executes it.
+On first open, `lib/db.js` imports `db/schema.js` via `createRequire` and calls `db.exec(schema)`. This runs `CREATE TABLE IF NOT EXISTS` for every table, so all tables are guaranteed to exist at runtime regardless of whether `npm run db:init` was executed beforehand. Do not add schema setup elsewhere.
+
+`db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS. `db/schema.js` is a CJS module that exports the raw SQL string as `module.exports.schema`.
 
 ### Cart state
-Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount. **Not yet built** — no `context/` directory exists yet.
-
-### Implementation status
-**Built:** home page (`/[locale]/page.js`), shop listing page (`/[locale]/shop/page.js` + `ShopGrid.js`).
-
-**Stubs (return placeholder text):** `/shop/[id]`, `/cart`, `/checkout`, `/order-confirmation`, `/wholesale`, `/about`, `/contact`, `/admin/login`, `/admin/orders`, `/admin/wholesale`.
-
-**API route handlers are also stubs** — all currently return hardcoded empty arrays (`{ products: [] }`, `{ orders: [] }`, etc.) rather than querying the DB.
-
-The `ShopGrid.js` pattern: `ShopPage` (Server Component) fetches products from the DB and passes them as a prop to `ShopGrid` (Client Component) which handles category filtering with `useState`. The "Add to Cart" button inside `ShopGrid` is presentational only — it stops the card link navigation but doesn't add anything to a cart yet.
+Client-side only: React Context + `localStorage`. Implemented in `context/CartContext.js`. Cart is serialized to `localStorage` on every change and rehydrated on mount. `CartProvider` wraps the locale layout in `app/[locale]/layout.js`. `useCart()` hook provides `addItem`, `removeItem`, `updateQty`, `clearCart`, `totalItems`, `totalPrice`.
 
 ### Admin auth
-Password stored in `ADMIN_PASSWORD` env var. Admin routes (`/admin/*`) are not locale-prefixed and check a cookie set at `/admin/login`. No user accounts, no JWT — just a simple cookie comparison.
+Password stored in `ADMIN_PASSWORD` env var. Admin routes use a `(protected)` route group (`app/admin/(protected)/`) whose `layout.js` reads the `admin_session` cookie (sha256 of `ADMIN_PASSWORD`) and redirects to `/admin/login` if absent or wrong. Cookie is set httpOnly, sameSite strict, secure in production, path `/admin`.
 
 `app/admin/layout.js` is a **parallel root layout** — it renders its own `<html>` and `<body>` tags. Don't wrap it in a nested layout or add another `<html>/<body>` inside it.
 
+`AdminNav` is a Client Component at `app/admin/(protected)/AdminNav.js`. It uses `usePathname()` for active-link highlighting and is rendered by the `(protected)` layout — do not add nav markup to individual admin pages.
+
+`/admin/logout` is a GET route handler that clears the cookie and redirects to `/admin/login`.
+
 ### Age verification
-NOT YET IMPLEMENTED — placeholder pages only. When built: must run before any `/[locale]/shop*` route (layout check or proxy interceptor), set a cookie on confirmation, clear on session end.
+Implemented. `proxy.js` (middleware) matches `/[locale]/shop*` routes, checks the `age_verified` cookie, and redirects to `/[locale]/age-gate?returnTo=...` if missing. The age gate page sets the cookie via a Server Action on confirmation.
+
+### SEO
+All locale pages export `generateMetadata` using `getTranslations({ locale, namespace })` with locale from `await params`. Product detail uses a DB query for name/description. `app/sitemap.js` lists all static routes + active products for both locales — it has `export const dynamic = 'force-dynamic'` to prevent build-time DB access. `app/robots.js` disallows `/admin/`.
+
+### Cookie banner
+`components/CookieBanner.js` is a Client Component. The locale layout reads the `cookie_consent` cookie server-side and passes it as `initialConsent` prop to avoid flash on return visits. Accepting sets the cookie client-side for one year.
+
+### Email notifications
+`lib/email.js` sends a plain-text order notification via nodemailer when an order is placed. Reads `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL` from env. Returns early if `SMTP_HOST` or `NOTIFY_EMAIL` are absent. Errors are caught and logged — never crash the checkout.
+
+## Implementation Status
+All customer-facing pages are fully built:
+- Home, shop listing, product detail (with image slideshow), cart, checkout (COD), order confirmation, wholesale inquiry, about, contact, age gate
+
+Admin panel is fully built:
+- Login, logout, orders (list + status update), wholesale inquiries (list + status update), products (list, create, edit, delete with image upload/remove)
+
+**API route handlers are stubs** — all return hardcoded empty responses and are not used by the frontend (which queries the DB directly in Server Components).
 
 ## Hard Rules
 - NEVER integrate Stripe, PayPal, or any online payment processor. Checkout is cash-on-delivery (Наложен платеж) only, fulfilled via Ekont or Speedy courier.
@@ -74,20 +89,21 @@ NOT YET IMPLEMENTED — placeholder pages only. When built: must run before any 
 - The root `img/` folder contains real product photos already tracked in git. It is distinct from `public/img/` (which has only `.gitkeep` placeholders for web-served images).
 
 ## Deployment (Railway)
-- `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly — uses `CREATE TABLE IF NOT EXISTS`).
+- `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly).
 - `DATABASE_PATH=/data/shop.db` and `RAILWAY_RUN_UID=0` are in the committed `.env` as Railway defaults; the Railway Volume must be mounted at `/data`.
 - Never write the DB file during the build step — only at runtime, or data won't land on the volume.
+- Any `app/` file that queries the DB must have `export const dynamic = 'force-dynamic'` if Next.js would otherwise try to prerender it (e.g. `app/sitemap.js`). Route handlers and Server Components under dynamic `[param]` segments are already dynamic.
 - Single instance only (volume doesn't support horizontal scaling).
 
 ## Internationalization
 - Default locale: `bg`. Secondary: `en`.
-- Translation strings in `/messages/bg.json` and `/messages/en.json`.
+- Translation strings in `/messages/bg.json` and `/messages/en.json` — 12 namespaces: `nav`, `home`, `shop`, `age_gate`, `product`, `cart`, `checkout`, `order_confirmation`, `wholesale`, `about`, `contact`, `cookie_banner`. Each page namespace also has `meta_title` and `meta_description` keys for SEO.
 - The locale toggle in the header switches routes (`/bg/...` ↔ `/en/...`) — not a client-side text swap.
 - Product content (`name_bg`/`name_en`, `description_bg`/`description_en`) is bilingual DB data, not UI strings.
 
 next-intl v4 patterns in use:
 - `i18n/request.js`: `getRequestConfig(async ({ requestLocale }) => { const locale = (await requestLocale) ?? 'bg'; ... })`
-- Server Components: `getTranslations('ns')` and `getLocale()` from `next-intl/server`
+- Server Components: `getTranslations('ns')` or `getTranslations({ locale, namespace: 'ns' })` (use the second form in `generateMetadata` where locale comes from `await params`), and `getLocale()` from `next-intl/server`
 - Client Components: `useTranslations`, `useLocale` from `next-intl` (require `NextIntlClientProvider` ancestor)
 - `NextIntlClientProvider` is in `app/[locale]/layout.js` — it receives `messages` from `getMessages()` server-side
 
@@ -95,42 +111,56 @@ next-intl v4 patterns in use:
 ```
 products(id, name_bg, name_en, category[honey|mead], variant, price_bgn, stock_qty,
          description_bg, description_en, image_path, active)
+product_images(id, product_id → products.id ON DELETE CASCADE, image_path, sort_order)
 orders(id, customer_name, phone, email, delivery_method[ekont_office|ekont_door|speedy_office|speedy_door],
        address_or_office, city, notes, status[pending|confirmed|shipped|delivered|cancelled], total_amount, created_at)
-order_items(id, order_id, product_id, qty, unit_price)
+order_items(id, order_id → orders.id, product_id → products.id, qty, unit_price)
 wholesale_inquiries(id, company_name, contact_name, phone, email, message, estimated_volume, status[new|contacted|closed], created_at)
 ```
 
+Products cannot be deleted if they appear in `order_items` (FK constraint). Set `active = 0` to hide them from the shop instead.
+
 ## API & Server Actions
 ```
-GET   /api/products              -> route handler
-GET   /api/products/[id]         -> route handler
+GET   /api/products              -> route handler (stub)
+GET   /api/products/[id]         -> route handler (stub)
       createOrder()              -> server action (checkout form)
-GET   /api/orders                -> route handler (admin only)
+GET   /api/orders                -> route handler (stub, admin only)
       updateOrderStatus()        -> server action (admin)
       createWholesaleInquiry()   -> server action (wholesale form)
-GET   /api/wholesale             -> route handler (admin only)
+GET   /api/wholesale             -> route handler (stub, admin only)
+      createProduct()            -> server action (admin products)
+      updateProduct()            -> server action (admin products)
+      deleteProduct()            -> server action (admin products)
 ```
 
 ## Pages (App Router, under `/[locale]/`)
 - `/` — home / brand story
 - `/shop` — product grid, filter by honey / mead
-- `/shop/[id]` — product detail
+- `/shop/[id]` — product detail with image slideshow
 - `/cart` — client-side cart
 - `/checkout` — COD form (name, phone, address, courier choice, notes)
-- `/order-confirmation`
+- `/order-confirmation` — shows order summary, clears cart
 - `/wholesale` — B2B inquiry form
 - `/about`, `/contact`
-- `/admin/login`, `/admin/orders`, `/admin/wholesale` — password-protected, not locale-prefixed
+- `/age-gate` — age verification (enforced by proxy.js on all `/[locale]/shop*` routes)
+
+Admin (not locale-prefixed, protected by `(protected)` layout):
+- `/admin/login`, `/admin/logout`
+- `/admin/orders` — list + status update
+- `/admin/wholesale` — list + status update
+- `/admin/products` — list with delete; `/admin/products/new`; `/admin/products/[id]`
 
 ## Conventions
 - Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
 - DB schema and seed scripts in `/db`.
-- Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`). `Header` is a Server Component; `MobileMenu` is a Client Component that receives nav links as a plain prop and handles the hamburger/drawer toggle.
+- Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`, `CookieBanner.js`, `CartBadgeLink.js`). `Header` is a Server Component; `MobileMenu` and `CookieBanner` are Client Components.
+- `lib/i18n.js` exports `getLocalizedField(product, field, locale)` — use this instead of inline `product[name_${locale}]` lookups.
+- `lib/adminActions.js` exports `updateStatus(table, validStatuses, revalidateUrl, rowId, formData)` — shared helper used by orders and wholesale status-update actions. Not a `'use server'` file; import it from within `'use server'` action files.
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
-- Every user-facing string goes through `next-intl` — never hardcoded in one language.
-- Images: `.webp` format, referenced via Next.js `<Image>`. Empty placeholder dirs: `public/img/products/`, `public/img/hero/`, `public/img/brand/` (tracked with `.gitkeep`).
-- `lib/db.js` already sets WAL mode and `foreign_keys = ON` — do not set these pragmas again in other code.
+- Every user-facing string goes through `next-intl` — never hardcoded in one language. Admin UI is English-only and does not use `next-intl`.
+- Images: `.webp` format, referenced via Next.js `<Image>`. Uploaded product images are stored in `public/img/products/` with a `${Date.now()}-${random}${ext}` filename. `product_images` rows are managed in `saveProductImages()` inside the products `actions.js` using a transaction.
+- `lib/db.js` already sets WAL mode, `foreign_keys = ON`, and runs `db.exec(schema)` — do not set these pragmas or run schema elsewhere.
 
 ## Design System
 `tailwind.config.js` and `app/globals.css` contain a full brand design system — do not rebuild or override it:
