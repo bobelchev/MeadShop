@@ -90,7 +90,7 @@ Admin panel is fully built:
 
 ## Deployment (Railway)
 - `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly).
-- `DATABASE_PATH=/data/shop.db` and `RAILWAY_RUN_UID=0` are in the committed `.env` as Railway defaults; the Railway Volume must be mounted at `/data`.
+- All env vars (`DATABASE_PATH`, `RAILWAY_RUN_UID`, `ADMIN_PASSWORD`, SMTP vars) are set in Railway's Variables dashboard — `.env` is gitignored. The Railway Volume must be mounted at `/data`.
 - Never write the DB file during the build step — only at runtime, or data won't land on the volume.
 - Any `app/` file that queries the DB must have `export const dynamic = 'force-dynamic'` if Next.js would otherwise try to prerender it (e.g. `app/sitemap.js`). Route handlers and Server Components under dynamic `[param]` segments are already dynamic.
 - Single instance only (volume doesn't support horizontal scaling).
