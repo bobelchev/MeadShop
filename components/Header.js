@@ -2,6 +2,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import LanguageToggle from './LanguageToggle';
 import MobileMenu from './MobileMenu';
+import CartBadgeLink from './CartBadgeLink';
 
 export default async function Header() {
   const t = await getTranslations('nav');
@@ -28,15 +29,19 @@ export default async function Header() {
 
         {/* Desktop nav — hidden on mobile */}
         <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="font-body text-sm font-medium text-bark-600 hover:text-honey-700 px-3 py-2 rounded-md hover:bg-honey-50 transition-all duration-180"
-            >
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ href, label }) =>
+            href.endsWith('/cart') ? (
+              <CartBadgeLink key={href} href={href} label={label} />
+            ) : (
+              <Link
+                key={href}
+                href={href}
+                className="font-body text-sm font-medium text-bark-600 hover:text-honey-700 px-3 py-2 rounded-md hover:bg-honey-50 transition-all duration-180"
+              >
+                {label}
+              </Link>
+            )
+          )}
           <div className="ml-2 pl-2 border-l border-cream-300">
             <LanguageToggle />
           </div>
