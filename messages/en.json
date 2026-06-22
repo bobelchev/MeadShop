@@ -43,5 +43,35 @@
     "out_of_stock": "Out of stock",
     "empty": "No products found.",
     "bgn": "BGN"
+  },
+  "about": {
+    "eyebrow": "Our story",
+    "heading": "About us",
+    "intro": "We unite small family beekeepers from the Rhodope and Balkan mountains to bring authentic honey and mead directly to your table.",
+    "story_heading": "How it all began",
+    "story_p1": "It all started with one beehive and a boundless love for Bulgaria's unspoiled nature. Our founders are children of beekeepers — raised among hives, flowers, and the scent of beeswax.",
+    "story_p2": "Over the years we realised that real honey — raw, unfiltered, with its aroma intact — is hard to find on shop shelves. So we decided to connect producers directly with people who care about quality food.",
+    "story_p3": "Today we work with over 20 small apiaries in Bulgaria's mountain regions. Every batch is limited, traceable, and certified. Our mission is simple: honey the way it should be.",
+    "values_heading": "Our values",
+    "v1_title": "100% Natural",
+    "v1_body": "No additives, no preservatives, no heat treatment. Just honey, bees, and flowers.",
+    "v2_title": "Local beekeepers",
+    "v2_body": "We work exclusively with small family apiaries from the Rhodopes, the Balkan range, and Strandzha.",
+    "v3_title": "Small batches",
+    "v3_body": "Every batch is limited, numbered, and carefully tracked from hive to jar.",
+    "cta_text": "Ready to taste?",
+    "cta_button": "Browse the shop"
+  },
+  "contact": {
+    "heading": "Contact",
+    "subheading": "Get in touch — we respond within 1 working day.",
+    "phone_label": "Phone",
+    "phone": "+359 88 123 4567",
+    "email_label": "E-mail",
+    "email": "contact@meadshop.bg",
+    "hours_label": "Working hours",
+    "hours": "Monday – Friday, 9:00 – 18:00",
+    "address_label": "Address",
+    "address": "Plovdiv, Bulgaria"
   }
 }
