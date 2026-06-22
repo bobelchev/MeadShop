@@ -17,6 +17,17 @@ export default async function LocaleLayout({ children, params }) {
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>
+          <footer className="py-4 text-center text-xs text-stone-400">
+            Built with{' '}
+            <a
+              href="https://claude.ai/code"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-stone-600 transition-colors"
+            >
+              Claude Code
+            </a>
+          </footer>
           <CookieBanner initialConsent={consent} />
         </div>
       </CartProvider>
