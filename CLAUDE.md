@@ -36,12 +36,21 @@ npm run db:seed   # inserts 3 sample products; optional
 `better-sqlite3` is synchronous and works best with a single process owning the DB file. One Railway service, one deploy, one Volume, no CORS setup. Server Actions handle form submissions with far less boilerplate than separate REST endpoints.
 
 ### DB access pattern
-`lib/db.js` exports a singleton `better-sqlite3` instance (ES module `import/export`), read from `process.env.DATABASE_PATH`. Route Handlers and Server Actions import directly from there — no ORM, no connection pool.
+`lib/db.js` exports a **lazy** singleton via a `Proxy`. The DB connection is created on first property access, not at module import. This lets `next build` succeed even when `DATABASE_PATH` isn't set in the build environment. Callers use the export identically to a real `Database` instance — the Proxy is transparent.
 
-`db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS.
+`db/init.js` and `db/seed.js` are standalone scripts that run with plain Node — they use CommonJS (`require`). Do not mix this up: app code uses ESM, scripts use CJS. `db/schema.js` is a CJS module that exports the raw SQL string as `module.exports.schema`; `init.js` requires it and executes it.
 
 ### Cart state
-Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount. **Not yet built** — no `context/` directory exists yet; all cart/shop/checkout pages are stubs returning "coming soon".
+Client-side only: React Context + `localStorage`. No server-side cart, no session. Cart is serialized to `localStorage` on every change and rehydrated on mount. **Not yet built** — no `context/` directory exists yet.
+
+### Implementation status
+**Built:** home page (`/[locale]/page.js`), shop listing page (`/[locale]/shop/page.js` + `ShopGrid.js`).
+
+**Stubs (return placeholder text):** `/shop/[id]`, `/cart`, `/checkout`, `/order-confirmation`, `/wholesale`, `/about`, `/contact`, `/admin/login`, `/admin/orders`, `/admin/wholesale`.
+
+**API route handlers are also stubs** — all currently return hardcoded empty arrays (`{ products: [] }`, `{ orders: [] }`, etc.) rather than querying the DB.
+
+The `ShopGrid.js` pattern: `ShopPage` (Server Component) fetches products from the DB and passes them as a prop to `ShopGrid` (Client Component) which handles category filtering with `useState`. The "Add to Cart" button inside `ShopGrid` is presentational only — it stops the card link navigation but doesn't add anything to a cart yet.
 
 ### Admin auth
 Password stored in `ADMIN_PASSWORD` env var. Admin routes (`/admin/*`) are not locale-prefixed and check a cookie set at `/admin/login`. No user accounts, no JWT — just a simple cookie comparison.
@@ -59,14 +68,14 @@ NOT YET IMPLEMENTED — placeholder pages only. When built: must run before any 
 - NEVER generate, source, or insert placeholder/stock images into the `img` folders. Create the folder structure only (with `.gitkeep` files so git tracks the empty dirs) — real product photos are added manually later.
 
 ## Local Development
-- DB path comes from `DATABASE_PATH` env var (set in `.env.local`, gitignored) — never hardcode `/data/shop.db` in code.
-- Railway deployment will be done manually later — don't generate Railway-specific config (`railway.json`, etc.) unless asked.
+- `.env` is committed with Railway production defaults (`DATABASE_PATH=/data/shop.db`, `RAILWAY_RUN_UID=0`). For local dev, create `.env.local` with `DATABASE_PATH=./data/shop.db` — Next.js loads `.env.local` last so it takes precedence.
+- If `better-sqlite3` throws an ABI version mismatch after a Node upgrade, run `npm rebuild better-sqlite3`.
 - Locale routing lives in `proxy.js` (Next.js 16 renamed `middleware.js` → `proxy.js`). Do not create a `middleware.js`.
 - The root `img/` folder contains real product photos already tracked in git. It is distinct from `public/img/` (which has only `.gitkeep` placeholders for web-served images).
 
-## Deployment (Railway) — for later
-- One Next.js service with a Railway Volume mounted at `/data`; set `DATABASE_PATH=/data/shop.db` in the Railway service's variables.
-- Set `RAILWAY_RUN_UID=0` (volumes mount as root; Node's non-root user can't write otherwise).
+## Deployment (Railway)
+- `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly — uses `CREATE TABLE IF NOT EXISTS`).
+- `DATABASE_PATH=/data/shop.db` and `RAILWAY_RUN_UID=0` are in the committed `.env` as Railway defaults; the Railway Volume must be mounted at `/data`.
 - Never write the DB file during the build step — only at runtime, or data won't land on the volume.
 - Single instance only (volume doesn't support horizontal scaling).
 
@@ -117,11 +126,19 @@ GET   /api/wholesale             -> route handler (admin only)
 ## Conventions
 - Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
 - DB schema and seed scripts in `/db`.
-- Shared UI components in `/components` (currently `Header.js`, `LanguageToggle.js`).
+- Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`). `Header` is a Server Component; `MobileMenu` is a Client Component that receives nav links as a plain prop and handles the hamburger/drawer toggle.
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
 - Every user-facing string goes through `next-intl` — never hardcoded in one language.
 - Images: `.webp` format, referenced via Next.js `<Image>`. Empty placeholder dirs: `public/img/products/`, `public/img/hero/`, `public/img/brand/` (tracked with `.gitkeep`).
 - `lib/db.js` already sets WAL mode and `foreign_keys = ON` — do not set these pragmas again in other code.
+
+## Design System
+`tailwind.config.js` and `app/globals.css` contain a full brand design system — do not rebuild or override it:
+- **Color tokens**: `honey-*` (amber/gold), `mead-*` (deep plum), `cream-*` (warm ivory), `bark-*` (dark brown text), `stone-*` (muted grey)
+- **Typography**: `font-display` = Playfair Display (headings, serif), `font-body` = Inter (body, sans). Google Fonts loaded in `app/layout.js`.
+- **Component classes** (in `globals.css` `@layer components`): `btn-primary`, `btn-secondary`, `btn-ghost`, `btn-ghost-inverted` (for dark backgrounds), `btn-mead`, `card-product`, `card-body`, `card-image-placeholder`, `badge-honey`, `badge-mead`, `section`, `section-narrow`, `ornament-rule`
+- **Utility classes** (in `@layer utilities`): `bg-honey-placeholder`, `bg-mead-placeholder` (gradient fills for product image areas), `bg-hero-parchment`, `bg-mead-panel`, `hero-overlay`, `text-shadow-warm`
+- Product image areas use `bg-honey-placeholder` or `bg-mead-placeholder` gradient divs until real photos are added — never use `<img>` placeholders or stock images.
 
 ## Subagents (VoltAgent core-development pack)
 - `fullstack-developer` — primary agent now that frontend + backend live in one Next.js app
