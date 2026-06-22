@@ -43,5 +43,12 @@
     "out_of_stock": "Out of stock",
     "empty": "No products found.",
     "bgn": "BGN"
+  },
+  "age_gate": {
+    "heading": "Confirm your age",
+    "body": "Mead is an alcoholic drink. Access to the shop is permitted only for persons aged 18 or over.",
+    "confirm": "I confirm — I am 18 or older",
+    "decline": "No, I am under 18",
+    "return_home": "Return to home page"
   }
 }
