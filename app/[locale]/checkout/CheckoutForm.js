@@ -6,6 +6,8 @@ import { useCart } from '@/context/CartContext';
 import { createOrder } from './actions';
 import EcontOfficePicker from '@/components/EcontOfficePicker';
 
+const EUR_TO_BGN = 1.95583; // fixed BNB peg rate
+
 const DELIVERY_OPTIONS = [
   { value: 'ekont_office',  key: 'delivery_ekont_office' },
   { value: 'ekont_door',    key: 'delivery_ekont_door' },
@@ -126,7 +128,7 @@ export default function CheckoutForm() {
           )}
           {deliveryPrice && deliveryPrice !== 'loading' && deliveryPrice !== 'error' && (
             <p className="font-body text-xs text-honey-700">
-              {t('delivery_price_estimate')}: ~{deliveryPrice.price.toFixed(2)} {deliveryPrice.currency}
+              {t('delivery_price_label')}: {deliveryPrice.price.toFixed(2)} EUR ({(deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')})
             </p>
           )}
         </div>
@@ -180,9 +182,23 @@ export default function CheckoutForm() {
       </div>
 
       <div className="border-t border-cream-200 pt-4">
-        <p className="font-display text-xl font-bold text-bark-700">
-          {t('total')}: {totalPrice.toFixed(2)} {t('bgn')}
-        </p>
+        {deliveryPrice && deliveryPrice !== 'loading' && deliveryPrice !== 'error' ? (
+          <div className="flex flex-col gap-1">
+            <p className="font-body text-sm text-bark-500">
+              {t('products_subtotal')}: {totalPrice.toFixed(2)} {t('bgn')}
+            </p>
+            <p className="font-body text-sm text-bark-500">
+              {t('delivery_price_label')}: {deliveryPrice.price.toFixed(2)} EUR ({(deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')})
+            </p>
+            <p className="font-display text-xl font-bold text-bark-700 mt-1">
+              {t('total')}: {(totalPrice + deliveryPrice.price * EUR_TO_BGN).toFixed(2)} {t('bgn')}
+            </p>
+          </div>
+        ) : (
+          <p className="font-display text-xl font-bold text-bark-700">
+            {t('total')}: {totalPrice.toFixed(2)} {t('bgn')}
+          </p>
+        )}
       </div>
 
       <button

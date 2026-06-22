@@ -112,7 +112,8 @@
     "office_search_placeholder": "Search by city or office name...",
     "delivery_price_loading": "Calculating delivery cost...",
     "delivery_price_unavailable": "Delivery price is currently unavailable.",
-    "delivery_price_estimate": "Estimated delivery cost"
+    "delivery_price_label": "Delivery",
+    "products_subtotal": "Products"
   },
   "order_confirmation": {
     "heading": "Order received!",

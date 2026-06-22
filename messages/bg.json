@@ -112,7 +112,8 @@
     "office_search_placeholder": "Търсете по град или офис...",
     "delivery_price_loading": "Изчисляване на доставката...",
     "delivery_price_unavailable": "Цената на доставката не е налична в момента.",
-    "delivery_price_estimate": "Приблизителна цена на доставката"
+    "delivery_price_label": "Доставка",
+    "products_subtotal": "Продукти"
   },
   "order_confirmation": {
     "heading": "Поръчката е приета!",
