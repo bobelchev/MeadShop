@@ -38,7 +38,7 @@ export async function createWholesaleInquiry(prevState, formData) {
     company_name,
     contact_name,
     phone,
-    email: email || null,
+    email: email || '',
     message,
   });
 
