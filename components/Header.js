@@ -1,5 +1,6 @@
 import { getTranslations, getLocale } from 'next-intl/server';
 import Link from 'next/link';
+import Image from 'next/image';
 import LanguageToggle from './LanguageToggle';
 import MobileMenu from './MobileMenu';
 import CartBadgeLink from './CartBadgeLink';
@@ -20,11 +21,8 @@ export default async function Header() {
     <header className="bg-cream-50 border-b border-cream-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-16 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link
-          href={`/${locale}`}
-          className="font-display text-xl font-bold text-bark-700 hover:text-honey-600 transition-colors duration-180"
-        >
-          Мед &amp; Медовина
+        <Link href={`/${locale}`} className="flex items-center hover:opacity-80 transition-opacity duration-180">
+          <Image src="/logo.png" alt="Мед & Медовина" width={40} height={40} priority />
         </Link>
 
         {/* Desktop nav — hidden on mobile */}
