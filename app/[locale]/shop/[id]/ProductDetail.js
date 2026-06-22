@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { getLocalizedField } from '@/lib/i18n';
 
 export default function ProductDetail({ product, locale, images = [] }) {
   const t = useTranslations('product');
@@ -15,8 +16,8 @@ export default function ProductDetail({ product, locale, images = [] }) {
   const [imgIdx, setImgIdx] = useState(0);
 
   const isHoney = product.category === 'honey';
-  const name = locale === 'bg' ? product.name_bg : product.name_en;
-  const description = locale === 'bg' ? product.description_bg : product.description_en;
+  const name = getLocalizedField(product, 'name', locale);
+  const description = getLocalizedField(product, 'description', locale);
   const inStock = product.stock_qty > 0;
 
   function handleAddToCart() {

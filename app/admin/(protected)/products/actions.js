@@ -49,11 +49,13 @@ async function saveProductImages(productId, formData) {
   }
 
   const allPaths = [...keptPaths, ...newPaths];
-  db.prepare('DELETE FROM product_images WHERE product_id = ?').run(productId);
   const insertImg = db.prepare(
     'INSERT INTO product_images (product_id, image_path, sort_order) VALUES (?, ?, ?)'
   );
-  allPaths.forEach((p, i) => insertImg.run(productId, p, i));
+  db.transaction(() => {
+    db.prepare('DELETE FROM product_images WHERE product_id = ?').run(productId);
+    allPaths.forEach((p, i) => insertImg.run(productId, p, i));
+  })();
 }
 
 export async function createProduct(prevState, formData) {

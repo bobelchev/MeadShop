@@ -17,6 +17,7 @@ export async function login(prevState, formData) {
     httpOnly: true,
     sameSite: 'strict',
     path: '/admin',
+    secure: process.env.NODE_ENV === 'production',
   });
 
   redirect('/admin/orders');

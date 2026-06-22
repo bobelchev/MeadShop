@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { getLocalizedField } from '@/lib/i18n';
 
 export default function ShopGrid({ products, initialCategory }) {
   const t = useTranslations('shop');
@@ -59,8 +60,8 @@ export default function ShopGrid({ products, initialCategory }) {
 function ProductCard({ product, locale, t }) {
   const { addItem } = useCart();
   const isHoney = product.category === 'honey';
-  const name = locale === 'bg' ? product.name_bg : product.name_en;
-  const description = locale === 'bg' ? product.description_bg : product.description_en;
+  const name = getLocalizedField(product, 'name', locale);
+  const description = getLocalizedField(product, 'description', locale);
   const inStock = product.stock_qty > 0;
 
   function handleAddToCart(e) {

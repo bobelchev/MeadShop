@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import crypto from 'crypto';
+import AdminNav from './AdminNav';
 
 export default async function ProtectedAdminLayout({ children }) {
   const cookieStore = await cookies();
@@ -13,5 +14,10 @@ export default async function ProtectedAdminLayout({ children }) {
     redirect('/admin/login');
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AdminNav />
+      {children}
+    </>
+  );
 }
