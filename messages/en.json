@@ -107,7 +107,9 @@
     "error_address": "Please enter an address or office.",
     "error_city": "Please enter a city.",
     "error_empty_cart": "Your cart is empty. Please add products before ordering.",
-    "cod_notice": "You pay cash to the courier on delivery."
+    "cod_notice": "You pay cash to the courier on delivery.",
+    "office_label": "Econt Office",
+    "office_search_placeholder": "Search by city or office name..."
   },
   "order_confirmation": {
     "heading": "Order received!",

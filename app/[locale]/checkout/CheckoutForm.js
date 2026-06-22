@@ -1,9 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useCart } from '@/context/CartContext';
 import { createOrder } from './actions';
+import EcontOfficePicker from '@/components/EcontOfficePicker';
 
 const DELIVERY_OPTIONS = [
   { value: 'ekont_office',  key: 'delivery_ekont_office' },
@@ -20,6 +21,7 @@ export default function CheckoutForm() {
   const locale = useLocale();
   const { items, totalPrice } = useCart();
   const [state, formAction, isPending] = useActionState(createOrder, null);
+  const [delivery, setDelivery] = useState('');
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -80,7 +82,8 @@ export default function CheckoutForm() {
           id="delivery_method"
           name="delivery_method"
           required
-          defaultValue=""
+          value={delivery}
+          onChange={e => setDelivery(e.target.value)}
           className={inputClass}
         >
           <option value="" disabled>
@@ -94,33 +97,44 @@ export default function CheckoutForm() {
         </select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="address_or_office" className="font-body font-medium text-bark-700 text-sm">
-          {t('address_label')} <span className="text-mead-500">*</span>
-        </label>
-        <input
-          id="address_or_office"
-          name="address_or_office"
-          type="text"
-          required
-          placeholder={t('address_placeholder')}
-          className={inputClass}
-        />
-      </div>
+      {delivery === 'ekont_office' ? (
+        <div className="flex flex-col gap-1.5">
+          <label className="font-body font-medium text-bark-700 text-sm">
+            {t('office_label')} <span className="text-mead-500">*</span>
+          </label>
+          <EcontOfficePicker inputClass={inputClass} />
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="address_or_office" className="font-body font-medium text-bark-700 text-sm">
+              {t('address_label')} <span className="text-mead-500">*</span>
+            </label>
+            <input
+              id="address_or_office"
+              name="address_or_office"
+              type="text"
+              required
+              placeholder={t('address_placeholder')}
+              className={inputClass}
+            />
+          </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="city" className="font-body font-medium text-bark-700 text-sm">
-          {t('city_label')} <span className="text-mead-500">*</span>
-        </label>
-        <input
-          id="city"
-          name="city"
-          type="text"
-          required
-          placeholder={t('city_placeholder')}
-          className={inputClass}
-        />
-      </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="city" className="font-body font-medium text-bark-700 text-sm">
+              {t('city_label')} <span className="text-mead-500">*</span>
+            </label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              required
+              placeholder={t('city_placeholder')}
+              className={inputClass}
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="notes" className="font-body font-medium text-bark-700 text-sm">
