@@ -9,8 +9,9 @@ export default function CookieBanner({ initialConsent }) {
   const t = useTranslations('cookie_banner');
   const locale = useLocale();
 
-  function accept() {
-    document.cookie = 'cookie_consent=accepted; path=/; max-age=31536000; SameSite=Lax';
+  function dismiss() {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `cookie_consent=accepted; path=/; max-age=31536000; SameSite=Lax${secure}`;
     setVisible(false);
   }
 
@@ -25,13 +26,13 @@ export default function CookieBanner({ initialConsent }) {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <Link
-            href={`/${locale}/contact`}
+            href={`/${locale}/privacy`}
             className="font-body text-sm text-cream-300 hover:text-cream-100 underline underline-offset-2 whitespace-nowrap"
           >
             {t('more_info')}
           </Link>
           <button
-            onClick={accept}
+            onClick={dismiss}
             className="btn-ghost-inverted text-sm px-4 py-2 whitespace-nowrap"
           >
             {t('accept')}

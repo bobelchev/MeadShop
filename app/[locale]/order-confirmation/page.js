@@ -15,11 +15,11 @@ export default async function OrderConfirmationPage({ searchParams }) {
   const t = await getTranslations('order_confirmation');
   const locale = await getLocale();
   const params = await searchParams;
-  const id = Number(params?.id);
+  const token = params?.token?.toString();
 
-  if (!id) notFound();
+  if (!token) notFound();
 
-  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+  const order = db.prepare('SELECT * FROM orders WHERE confirmation_token = ?').get(token);
   if (!order) notFound();
 
   const deliveryKey = DELIVERY_KEY_MAP[order.delivery_method] ?? 'delivery_ekont_office';

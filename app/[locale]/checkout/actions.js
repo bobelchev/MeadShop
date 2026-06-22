@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
+import crypto from 'crypto';
 import db from '@/lib/db';
 import { sendOrderNotification } from '@/lib/email';
 
@@ -10,13 +11,13 @@ const DELIVERY_METHODS = ['ekont_office', 'ekont_door', 'speedy_office', 'speedy
 export async function createOrder(prevState, formData) {
   const locale = await getLocale();
 
-  const customer_name = formData.get('customer_name')?.toString().trim() ?? '';
-  const phone = formData.get('phone')?.toString().trim() ?? '';
-  const email = formData.get('email')?.toString().trim() ?? '';
+  const customer_name = formData.get('customer_name')?.toString().trim().slice(0, 200) ?? '';
+  const phone = formData.get('phone')?.toString().trim().slice(0, 50) ?? '';
+  const email = formData.get('email')?.toString().trim().slice(0, 200) ?? '';
   const delivery_method = formData.get('delivery_method')?.toString().trim() ?? '';
-  const address_or_office = formData.get('address_or_office')?.toString().trim() ?? '';
-  const city = formData.get('city')?.toString().trim() ?? '';
-  const notes = formData.get('notes')?.toString().trim() ?? '';
+  const address_or_office = formData.get('address_or_office')?.toString().trim().slice(0, 500) ?? '';
+  const city = formData.get('city')?.toString().trim().slice(0, 200) ?? '';
+  const notes = formData.get('notes')?.toString().trim().slice(0, 1000) ?? '';
   const cartJson = formData.get('cart')?.toString() ?? '[]';
 
   if (!customer_name) return { error: 'error_name' };
@@ -49,14 +50,17 @@ export async function createOrder(prevState, formData) {
     const dbProduct = dbProductMap[item.id];
     if (!dbProduct) return { error: 'error_empty_cart' };
     const unit_price = dbProduct.price_bgn;
-    const qty = Math.max(1, Math.floor(Number(item.qty)));
+    const qty = Math.min(Math.max(1, Math.floor(Number(item.qty))), 999);
+    if (dbProduct.stock_qty < qty) return { error: 'error_empty_cart' };
     total_amount += unit_price * qty;
     verifiedItems.push({ product_id: item.id, qty, unit_price });
   }
 
+  const confirmation_token = crypto.randomBytes(32).toString('hex');
+
   const insertOrder = db.prepare(`
-    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount)
-    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount)
+    INSERT INTO orders (customer_name, phone, email, delivery_method, address_or_office, city, notes, status, total_amount, confirmation_token)
+    VALUES (@customer_name, @phone, @email, @delivery_method, @address_or_office, @city, @notes, 'pending', @total_amount, @confirmation_token)
   `);
   const insertItem = db.prepare(`
     INSERT INTO order_items (order_id, product_id, qty, unit_price)
@@ -76,6 +80,7 @@ export async function createOrder(prevState, formData) {
       city,
       notes: notes || null,
       total_amount,
+      confirmation_token,
     });
     const order_id = result.lastInsertRowid;
     for (const item of verifiedItems) {
@@ -97,5 +102,5 @@ export async function createOrder(prevState, formData) {
     notes,
     totalAmount: total_amount,
   }).catch(() => {});
-  redirect(`/${locale}/order-confirmation?id=${orderId}`);
+  redirect(`/${locale}/order-confirmation?token=${confirmation_token}`);
 }

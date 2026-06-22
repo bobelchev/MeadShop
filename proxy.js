@@ -6,15 +6,14 @@ const intlMiddleware = createMiddleware({
   defaultLocale: 'bg',
 });
 
-// Matches /bg/shop, /en/shop, /bg/shop/123, /bg/shop/456, etc.
-const SHOP_PATTERN = /^\/(?:bg|en)\/shop(?:\/|$)/;
+// Matches /bg/shop*, /en/shop*, /bg/checkout, /en/checkout
+const AGE_GATE_PATTERN = /^\/(?:bg|en)\/(?:shop(?:\/|$)|checkout(?:\/|$))/;
 
 export default function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Age gate: block unverified visitors from all /[locale]/shop* routes
-  // Exclude /[locale]/age-gate itself (infinite loop prevention)
-  if (SHOP_PATTERN.test(pathname)) {
+  // Age gate: block unverified visitors from shop and checkout routes
+  if (AGE_GATE_PATTERN.test(pathname)) {
     const verified = request.cookies.get('age_verified')?.value;
     if (verified !== '1') {
       const locale = pathname.startsWith('/en') ? 'en' : 'bg';

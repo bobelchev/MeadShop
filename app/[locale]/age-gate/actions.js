@@ -9,7 +9,11 @@ export async function confirmAge(locale, returnTo) {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    // No maxAge — session-scoped, cleared when browser closes
   });
-  redirect(returnTo || `/${locale}/shop`);
+  // Reject absolute URLs and protocol-relative paths to prevent open redirect
+  const safePath =
+    typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//')
+      ? returnTo
+      : `/${locale}/shop`;
+  redirect(safePath);
 }

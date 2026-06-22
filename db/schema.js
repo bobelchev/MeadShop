@@ -23,6 +23,7 @@ const schema = `
     notes TEXT,
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
     total_amount REAL NOT NULL,
+    confirmation_token TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

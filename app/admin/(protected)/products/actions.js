@@ -5,8 +5,12 @@ import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import db from '@/lib/db';
+import { requireAdmin } from '@/lib/adminSession';
 
 const VALID_CATEGORIES = ['honey', 'mead'];
+const ALLOWED_IMAGE_TYPES = { 'image/webp': '.webp', 'image/jpeg': '.jpg', 'image/png': '.png' };
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_COUNT = 10;
 
 function extractFields(formData) {
   return {
@@ -37,11 +41,13 @@ async function saveProductImages(productId, formData) {
   const uploadDir = path.join(process.cwd(), 'public', 'img', 'products');
   fs.mkdirSync(uploadDir, { recursive: true });
 
-  const newFiles = formData.getAll('newImages');
+  const newFiles = formData.getAll('newImages').slice(0, MAX_IMAGE_COUNT);
   const newPaths = [];
   for (const file of newFiles) {
     if (!file || file.size === 0) continue;
-    const ext = path.extname(file.name) || '.jpg';
+    if (file.size > MAX_IMAGE_SIZE) continue;
+    const ext = ALLOWED_IMAGE_TYPES[file.type];
+    if (!ext) continue; // reject non-allowlisted types
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     fs.writeFileSync(path.join(uploadDir, filename), buffer);
@@ -59,6 +65,7 @@ async function saveProductImages(productId, formData) {
 }
 
 export async function createProduct(prevState, formData) {
+  await requireAdmin();
   const f = extractFields(formData);
   const error = validate(f);
   if (error) return { error };
@@ -73,6 +80,7 @@ export async function createProduct(prevState, formData) {
 }
 
 export async function updateProduct(productId, prevState, formData) {
+  await requireAdmin();
   const f = extractFields(formData);
   const error = validate(f);
   if (error) return { error };
@@ -91,6 +99,7 @@ export async function updateProduct(productId, prevState, formData) {
 }
 
 export async function deleteProduct(productId) {
+  await requireAdmin();
   const hasOrders = db
     .prepare('SELECT 1 FROM order_items WHERE product_id = ? LIMIT 1')
     .get(productId);

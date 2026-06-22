@@ -1,16 +1,9 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import crypto from 'crypto';
+import { isAdminAuthenticated } from '@/lib/adminSession';
 import AdminNav from './AdminNav';
 
 export default async function ProtectedAdminLayout({ children }) {
-  const cookieStore = await cookies();
-  const expected = crypto
-    .createHash('sha256')
-    .update(process.env.ADMIN_PASSWORD ?? '')
-    .digest('hex');
-
-  if (cookieStore.get('admin_session')?.value !== expected) {
+  if (!(await isAdminAuthenticated())) {
     redirect('/admin/login');
   }
 
