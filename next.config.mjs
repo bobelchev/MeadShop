@@ -4,7 +4,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.js');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['better-sqlite3'],
+  serverExternalPackages: ['better-sqlite3', 'nodemailer'],
 };
 
 export default withNextIntl(nextConfig);
