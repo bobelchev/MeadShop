@@ -6,12 +6,27 @@ import db from '@/lib/db';
 import { updateStatus } from '@/lib/adminActions';
 import { requireAdmin } from '@/lib/adminSession';
 import { createWaybill } from '@/lib/econt';
+import { sendOrderStatusEmail } from '@/lib/email';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 export async function updateOrderStatus(orderId, formData) {
   await requireAdmin();
+  const newStatus = formData.get('newStatus')?.toString() ?? '';
   updateStatus('orders', VALID_STATUSES, '/admin/orders', orderId, formData);
+
+  if (['confirmed', 'shipped'].includes(newStatus)) {
+    const order = db.prepare('SELECT customer_name, email, econt_shipment_number FROM orders WHERE id = ?').get(orderId);
+    if (order?.email) {
+      sendOrderStatusEmail({
+        orderId,
+        customerName: order.customer_name,
+        email: order.email,
+        status: newStatus,
+        shipmentNumber: order.econt_shipment_number,
+      }).catch(() => {});
+    }
+  }
 }
 
 export async function createEcontWaybill(orderId, prevState) {
