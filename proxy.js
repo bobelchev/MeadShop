@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 const intlMiddleware = createMiddleware({
   locales: ['bg', 'en'],
   defaultLocale: 'bg',
+  localeDetection: false,
 });
 
 // Matches /bg/shop*, /en/shop*, /bg/checkout, /en/checkout
