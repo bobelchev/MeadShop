@@ -64,14 +64,24 @@ All locale pages export `generateMetadata` using `getTranslations({ locale, name
 `components/CookieBanner.js` is a Client Component. The locale layout reads the `cookie_consent` cookie server-side and passes it as `initialConsent` prop to avoid flash on return visits. Accepting sets the cookie client-side for one year.
 
 ### Email notifications
-`lib/email.js` sends a plain-text order notification via nodemailer when an order is placed. Reads `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL` from env. Returns early if `SMTP_HOST` or `NOTIFY_EMAIL` are absent. Errors are caught and logged — never crash the checkout.
+`lib/email.js` handles all transactional email via nodemailer (Resend SMTP). Four exported functions:
+- `sendOrderNotification` — alerts shop owner (`NOTIFY_EMAIL`) when an order is placed
+- `sendOrderConfirmation` — sends itemised receipt to the customer (only if they provided an email); locale-aware BG/EN
+- `sendWholesaleNotification` — alerts shop owner when a wholesale inquiry is submitted
+- `sendWholesaleConfirmation` — sends acknowledgement to the contact (only if email provided); locale-aware BG/EN
+
+All functions are fire-and-forget (`.catch(() => {})`), never crash the request. Silent no-op if `SMTP_HOST` is absent.
+
+Env vars: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (visible sender address), `NOTIFY_EMAIL` (shop owner inbox).
+
+Resend SMTP settings: `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER=resend`, `SMTP_PASS=<api_key>`. For dev use `SMTP_FROM=onboarding@resend.dev`; for production verify the domain in the Resend dashboard and use `orders@yourdomain.com`.
 
 ## Implementation Status
 All customer-facing pages are fully built:
 - Home, shop listing, product detail (with image slideshow), cart, checkout (COD), order confirmation, wholesale inquiry, about, contact, age gate
 
 Admin panel is fully built:
-- Login, logout, orders (list + status update + Econt waybill creation), wholesale inquiries (list + status update), products (list, create, edit, delete with image upload/remove)
+- Login, logout, orders (list + status update + Econt waybill creation), wholesale inquiries (list + status update), products (list, create, edit, delete with image upload/remove), content (editable About and Home page copy)
 
 **API route handlers are stubs** — all return hardcoded empty responses and are not used by the frontend (which queries the DB directly in Server Components).
 
@@ -156,6 +166,7 @@ Admin (not locale-prefixed, protected by `(protected)` layout):
 - `/admin/orders` — list + status update; `/admin/orders/[id]` — order detail with Econt waybill creation
 - `/admin/wholesale` — list + status update
 - `/admin/products` — list with delete; `/admin/products/new`; `/admin/products/[id]`
+- `/admin/content` — edit About and Home page copy in BG + EN without redeploying
 
 ## Conventions
 - Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
@@ -170,6 +181,7 @@ Admin (not locale-prefixed, protected by `(protected)` layout):
 - Every user-facing string goes through `next-intl` — never hardcoded in one language. Admin UI is English-only and does not use `next-intl`.
 - Images: `.webp` format, referenced via Next.js `<Image>`. Uploaded product images are stored in `public/img/products/` with a `${Date.now()}-${random}${ext}` filename. `product_images` rows are managed in `saveProductImages()` inside the products `actions.js` using a transaction.
 - `lib/db.js` already sets WAL mode, `foreign_keys = ON`, and runs `db.exec(schema)` — do not set these pragmas or run schema elsewhere.
+- `lib/content.js` exports `getPageContent(namespace, locale)` (returns merged DB+JSON content object for a page) and `getContentRows(namespace)` (returns raw rows for the admin editor). The `site_content` table keys are dot-namespaced (`about.heading`, `home.hero_eyebrow`). DB values override JSON translation fallbacks; empty DB = unchanged content. Currently covers `about` and `home` namespaces — add new namespaces to `NAMESPACES` in `app/admin/(protected)/content/actions.js` and field config in `app/admin/(protected)/content/page.js`.
 
 ## Design System
 `tailwind.config.js` and `app/globals.css` contain a full brand design system — do not rebuild or override it:
