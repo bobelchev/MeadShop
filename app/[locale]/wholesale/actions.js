@@ -1,6 +1,7 @@
 'use server';
 
 import db from '@/lib/db';
+import { sendWholesaleNotification } from '@/lib/email';
 
 export async function createWholesaleInquiry(prevState, formData) {
   const company_name = formData.get('company_name')?.toString().trim().slice(0, 200) ?? '';
@@ -43,7 +44,7 @@ export async function createWholesaleInquiry(prevState, formData) {
 
   if (!message) return { error: 'error_no_products' };
 
-  db.prepare(`
+  const { lastInsertRowid } = db.prepare(`
     INSERT INTO wholesale_inquiries (company_name, contact_name, phone, email, message, status)
     VALUES (@company_name, @contact_name, @phone, @email, @message, 'new')
   `).run({
@@ -51,6 +52,15 @@ export async function createWholesaleInquiry(prevState, formData) {
     contact_name,
     phone,
     email: email || '',
+    message,
+  });
+
+  sendWholesaleNotification({
+    inquiryId: lastInsertRowid,
+    companyName: company_name,
+    contactName: contact_name,
+    phone,
+    email,
     message,
   });
 
