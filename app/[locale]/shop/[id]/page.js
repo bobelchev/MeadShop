@@ -2,8 +2,8 @@ import { getLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import db from '@/lib/db';
 import ProductDetail from './ProductDetail';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
+import { SITE_URL } from '@/lib/siteUrl';
+import { getLocalizedField } from '@/lib/i18n';
 
 export async function generateMetadata({ params }) {
   const { locale, id } = await params;
@@ -11,8 +11,8 @@ export async function generateMetadata({ params }) {
     .prepare('SELECT name_bg, name_en, description_bg, description_en FROM products WHERE id = ? AND active = 1')
     .get(Number(id));
   if (!product) return {};
-  const name = product[`name_${locale}`] ?? product.name_bg;
-  const description = product[`description_${locale}`] ?? product.description_bg;
+  const name = getLocalizedField(product, 'name', locale);
+  const description = getLocalizedField(product, 'description', locale);
   return {
     title: `${name} — Пчелин Мед`,
     description: description?.slice(0, 160) ?? '',

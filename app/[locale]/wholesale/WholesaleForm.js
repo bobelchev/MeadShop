@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { createWholesaleInquiry } from './actions';
+import { getLocalizedField } from '@/lib/i18n';
 
 export default function WholesaleForm({ products }) {
   const t = useTranslations('wholesale');
@@ -12,7 +13,7 @@ export default function WholesaleForm({ products }) {
 
   function addProduct(product) {
     if (selections.find((s) => s.id === product.id)) return;
-    setSelections((prev) => [...prev, { id: product.id, name: locale === 'en' ? product.name_en : product.name_bg, qty: 1, note: '' }]);
+    setSelections((prev) => [...prev, { id: product.id, name: getLocalizedField(product, 'name', locale), qty: 1, note: '' }]);
   }
 
   function removeProduct(id) {
@@ -121,7 +122,7 @@ export default function WholesaleForm({ products }) {
         ) : (
           <div className="space-y-2">
             {products.map((p) => {
-              const name = locale === 'en' ? p.name_en : p.name_bg;
+              const name = getLocalizedField(p, 'name', locale);
               const added = selectedIds.has(p.id);
               return (
                 <div key={p.id} className={`flex items-center justify-between border rounded-lg px-4 py-3 transition-colors ${added ? 'border-honey-400 bg-honey-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>

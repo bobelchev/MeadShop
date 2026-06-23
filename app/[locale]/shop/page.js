@@ -1,8 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import db from '@/lib/db';
 import ShopGrid from './ShopGrid';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meadshop.bg';
+import { SITE_URL } from '@/lib/siteUrl';
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;

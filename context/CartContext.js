@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { getLocalizedField } from '@/lib/i18n';
 
 const STORAGE_KEY = 'meadshop_cart';
 
@@ -28,7 +29,7 @@ export function CartProvider({ children }) {
   }, [items, hydrated]);
 
   function addItem(product, locale) {
-    const name = locale === 'en' ? product.name_en : product.name_bg;
+    const name = getLocalizedField(product, 'name', locale);
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
