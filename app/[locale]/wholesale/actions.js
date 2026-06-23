@@ -1,9 +1,11 @@
 'use server';
 
 import db from '@/lib/db';
-import { sendWholesaleNotification } from '@/lib/email';
+import { getLocale } from 'next-intl/server';
+import { sendWholesaleNotification, sendWholesaleConfirmation } from '@/lib/email';
 
 export async function createWholesaleInquiry(prevState, formData) {
+  const locale = await getLocale();
   const company_name = formData.get('company_name')?.toString().trim().slice(0, 200) ?? '';
   const contact_name = formData.get('contact_name')?.toString().trim().slice(0, 200) ?? '';
   const phone = formData.get('phone')?.toString().trim().slice(0, 50) ?? '';
@@ -63,6 +65,10 @@ export async function createWholesaleInquiry(prevState, formData) {
     email,
     message,
   });
+
+  if (email) {
+    sendWholesaleConfirmation({ companyName: company_name, contactName: contact_name, email, message, locale });
+  }
 
   return { success: true };
 }

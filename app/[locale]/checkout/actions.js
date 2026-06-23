@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
 import crypto from 'crypto';
 import db from '@/lib/db';
-import { sendOrderNotification } from '@/lib/email';
+import { sendOrderNotification, sendOrderConfirmation } from '@/lib/email';
 
 const DELIVERY_METHODS = ['ekont_office', 'ekont_door', 'speedy_office', 'speedy_door'];
 
@@ -42,7 +42,7 @@ export async function createOrder(prevState, formData) {
   const productIds = cartItems.map((i) => i.id);
   const placeholders = productIds.map(() => '?').join(',');
   const dbProducts = db
-    .prepare(`SELECT id, price_bgn, stock_qty FROM products WHERE id IN (${placeholders}) AND active = 1`)
+    .prepare(`SELECT id, name_bg, name_en, price_bgn, stock_qty FROM products WHERE id IN (${placeholders}) AND active = 1`)
     .all(...productIds);
 
   const dbProductMap = Object.fromEntries(dbProducts.map((p) => [p.id, p]));
@@ -56,7 +56,7 @@ export async function createOrder(prevState, formData) {
     const qty = Math.min(Math.max(1, Math.floor(Number(item.qty))), 999);
     if (dbProduct.stock_qty < qty) return { error: 'error_empty_cart' };
     total_amount += unit_price * qty;
-    verifiedItems.push({ product_id: item.id, qty, unit_price });
+    verifiedItems.push({ product_id: item.id, qty, unit_price, name: locale === 'en' ? dbProduct.name_en : dbProduct.name_bg });
   }
 
   const confirmation_token = crypto.randomBytes(32).toString('hex');
@@ -107,5 +107,20 @@ export async function createOrder(prevState, formData) {
     notes,
     totalAmount: total_amount,
   }).catch(() => {});
+
+  if (email) {
+    sendOrderConfirmation({
+      orderId,
+      customerName: customer_name,
+      email,
+      deliveryMethod: delivery_method,
+      addressOrOffice: address_or_office,
+      city,
+      notes,
+      items: verifiedItems.map(({ name, qty, unit_price }) => ({ name, qty, unitPrice: unit_price })),
+      totalAmount: total_amount,
+      locale,
+    }).catch(() => {});
+  }
   redirect(`/${locale}/order-confirmation?token=${confirmation_token}`);
 }
