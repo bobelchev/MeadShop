@@ -149,21 +149,22 @@ GET   /api/wholesale             -> route handler (stub, admin only)
 - `/wholesale` — B2B inquiry form
 - `/about`, `/contact`
 - `/age-gate` — age verification (enforced by proxy.js on all `/[locale]/shop*` routes)
+- `/privacy` — privacy policy page (linked from footer)
 
 Admin (not locale-prefixed, protected by `(protected)` layout):
 - `/admin/login`, `/admin/logout`
-- `/admin/orders` — list + status update
+- `/admin/orders` — list + status update; `/admin/orders/[id]` — order detail with Econt waybill creation
 - `/admin/wholesale` — list + status update
 - `/admin/products` — list with delete; `/admin/products/new`; `/admin/products/[id]`
 
 ## Conventions
 - Server Actions and Route Handlers live alongside their routes (`actions.js` / `route.js` per `app/` segment).
 - DB schema and seed scripts in `/db`.
-- Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`, `CookieBanner.js`, `CartBadgeLink.js`). `Header` is a Server Component; `MobileMenu` and `CookieBanner` are Client Components.
+- Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`, `CookieBanner.js`, `CartBadgeLink.js`, `EcontOfficePicker.js`, `SplashScreen.js`). `Header` is a Server Component; `MobileMenu`, `CookieBanner`, `EcontOfficePicker`, and `SplashScreen` are Client Components. `SplashScreen` shows a branded overlay on the first page load per browser session (guarded by `sessionStorage`) and fades out after ~2.4 s — rendered in `app/[locale]/layout.js`.
 - `lib/i18n.js` exports `getLocalizedField(product, field, locale)` — use this instead of inline `product[name_${locale}]` lookups.
 - `lib/adminActions.js` exports `updateStatus(table, validStatuses, revalidateUrl, rowId, formData)` — shared helper used by orders and wholesale status-update actions. Not a `'use server'` file; import it from within `'use server'` action files.
 - `lib/price.js` exports `EUR_TO_BGN = 1.95583` (fixed BNB peg rate). All prices display as "X.XX EUR (Y.YY лв.)" — EUR is the leading value. Import this constant wherever currency conversion is needed; do not hardcode the rate.
-- `lib/econt.js` handles all Econt API calls: `searchOffices(query)`, `getDeliveryPrice(cityId, weightKg, cdAmount)`, `createWaybill(order, totalWeightKg)`. Offices and cities are cached in memory for 24 h. Uses `ECONT_BASE_URL` (default demo), `ECONT_USER`/`ECONT_PASS` (default `demo`/`demo`), `ECONT_SENDER_CITY_ID` (default 42 = Стара Загора). The demo account supports price calculation but **cannot create real waybills** (returns 517); real credentials are needed in production.
+- `lib/econt.js` handles all Econt API calls: `searchOffices(query)`, `getDeliveryPrice(cityId, weightKg, cdAmount)`, `createWaybill(order, totalWeightKg)`. Offices and cities are cached in memory for 24 h. Uses `ECONT_BASE_URL` (default `https://demo.econt.com/ee/services`), `ECONT_USER`/`ECONT_PASS` (default `iasp-dev`/`1Asp-dev` — the official Econt integration test account), `ECONT_SENDER_CITY_ID` (default 42 = Стара Загора, used only when `ECONT_SENDER_OFFICE_CODE` is absent), `ECONT_SENDER_OFFICE_CODE` (office the merchant drops parcels at — required for waybill creation), `ECONT_SENDER_NAME` and `ECONT_SENDER_PHONE` (merchant identity on the label). Waybill creation requires all three sender vars and passes `mode: "create"` explicitly. Production requires real e-econt credentials and `ECONT_BASE_URL=https://ee.econt.com/services`.
 - `components/EcontOfficePicker.js` is a Client Component — debounced search calling `/api/econt/offices`, fills hidden inputs `address_or_office`, `city`, `econt_office_code`, and fires `onSelect(office)` with the full office object (including `cityId` for price lookup).
 - Form validation happens inside the Server Action (server-side); client-side validation is optional UX only.
 - Every user-facing string goes through `next-intl` — never hardcoded in one language. Admin UI is English-only and does not use `next-intl`.
