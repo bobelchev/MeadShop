@@ -58,6 +58,12 @@ const schema = `
     status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new', 'contacted', 'closed')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS site_content (
+    key      TEXT PRIMARY KEY,
+    value_bg TEXT NOT NULL DEFAULT '',
+    value_en TEXT NOT NULL DEFAULT ''
+  );
 `;
 
 module.exports = { schema };

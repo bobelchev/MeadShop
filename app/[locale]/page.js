@@ -1,6 +1,7 @@
 import { getTranslations, getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { SITE_URL } from '@/lib/siteUrl';
+import { getPageContent } from '@/lib/content';
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -13,8 +14,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function HomePage() {
-  const t = await getTranslations('home');
   const locale = await getLocale();
+  const c = getPageContent('home', locale);
 
   return (
     <>
@@ -23,20 +24,20 @@ export default async function HomePage() {
         <div className="section max-w-7xl mx-auto">
           <div className="max-w-2xl">
             <p className="font-body text-sm font-semibold uppercase tracking-widest text-honey-600 mb-3">
-              {t('hero_eyebrow')}
+              {c.hero_eyebrow}
             </p>
             <h1 className="font-display text-5xl md:text-hero font-bold text-bark-700 mb-5 leading-tight">
-              {t('hero_heading')}
+              {c.hero_heading}
             </h1>
             <p className="font-body text-lg text-bark-500 mb-8 max-w-prose">
-              {t('hero_body')}
+              {c.hero_body}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href={`/${locale}/shop`} className="btn-primary px-8 py-4 text-base">
-                {t('hero_cta_shop')}
+                {c.hero_cta_shop}
               </Link>
               <Link href={`/${locale}/about`} className="btn-ghost px-8 py-4 text-base">
-                {t('hero_cta_about')}
+                {c.hero_cta_about}
               </Link>
             </div>
           </div>
@@ -47,22 +48,22 @@ export default async function HomePage() {
       <section className="section">
         <div className="max-w-7xl mx-auto">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-bark-700 text-center mb-10">
-            {t('categories_heading')}
+            {c.categories_heading}
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             {/* Honey */}
             <div className="rounded-xl overflow-hidden border border-cream-200 shadow-card hover:shadow-card-hover transition-shadow duration-250">
               <div className="bg-honey-placeholder h-56" />
               <div className="p-6">
-                <span className="badge-honey">{t('honey_label')}</span>
+                <span className="badge-honey">{c.honey_label}</span>
                 <h3 className="font-display text-2xl font-bold text-bark-700 mt-3 mb-2">
-                  {t('honey_title')}
+                  {c.honey_title}
                 </h3>
                 <p className="font-body text-bark-500 mb-5 leading-relaxed">
-                  {t('honey_body')}
+                  {c.honey_body}
                 </p>
                 <Link href={`/${locale}/shop?category=honey`} className="btn-primary">
-                  {t('honey_cta')}
+                  {c.honey_cta}
                 </Link>
               </div>
             </div>
@@ -71,15 +72,15 @@ export default async function HomePage() {
             <div className="rounded-xl overflow-hidden border border-cream-200 shadow-card hover:shadow-card-hover transition-shadow duration-250">
               <div className="bg-mead-placeholder h-56" />
               <div className="p-6">
-                <span className="badge-mead">{t('mead_label')}</span>
+                <span className="badge-mead">{c.mead_label}</span>
                 <h3 className="font-display text-2xl font-bold text-bark-700 mt-3 mb-2">
-                  {t('mead_title')}
+                  {c.mead_title}
                 </h3>
                 <p className="font-body text-bark-500 mb-5 leading-relaxed">
-                  {t('mead_body')}
+                  {c.mead_body}
                 </p>
                 <Link href={`/${locale}/shop?category=mead`} className="btn-mead">
-                  {t('mead_cta')}
+                  {c.mead_cta}
                 </Link>
               </div>
             </div>
@@ -91,12 +92,12 @@ export default async function HomePage() {
       <section className="bg-cream-100 border-t border-b border-cream-200">
         <div className="section max-w-7xl mx-auto">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-bark-700 text-center mb-10">
-            {t('values_heading')}
+            {c.values_heading}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <ValueCard title={t('value_natural_title')} body={t('value_natural_body')} />
-            <ValueCard title={t('value_local_title')} body={t('value_local_body')} />
-            <ValueCard title={t('value_craft_title')} body={t('value_craft_body')} />
+            <ValueCard title={c.value_natural_title} body={c.value_natural_body} />
+            <ValueCard title={c.value_local_title} body={c.value_local_body} />
+            <ValueCard title={c.value_craft_title} body={c.value_craft_body} />
           </div>
         </div>
       </section>
@@ -105,13 +106,13 @@ export default async function HomePage() {
       <section className="bg-mead-panel">
         <div className="section max-w-4xl mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-cream-50 mb-4">
-            {t('story_heading')}
+            {c.story_heading}
           </h2>
           <p className="font-body text-lg text-cream-200 mb-8 max-w-2xl mx-auto leading-relaxed">
-            {t('story_body')}
+            {c.story_body}
           </p>
           <Link href={`/${locale}/about`} className="btn-ghost-inverted">
-            {t('story_cta')}
+            {c.story_cta}
           </Link>
         </div>
       </section>
