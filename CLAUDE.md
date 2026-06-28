@@ -64,9 +64,10 @@ All locale pages export `generateMetadata` using `getTranslations({ locale, name
 `components/CookieBanner.js` is a Client Component. The locale layout reads the `cookie_consent` cookie server-side and passes it as `initialConsent` prop to avoid flash on return visits. Accepting sets the cookie client-side for one year.
 
 ### Email notifications
-`lib/email.js` handles all transactional email via nodemailer (Resend SMTP). Four exported functions:
+`lib/email.js` handles all transactional email via nodemailer (Resend SMTP). Five exported functions:
 - `sendOrderNotification` — alerts shop owner (`NOTIFY_EMAIL`) when an order is placed
 - `sendOrderConfirmation` — sends itemised receipt to the customer (only if they provided an email); locale-aware BG/EN
+- `sendOrderStatusEmail` — notifies the customer when admin sets order status to `confirmed` or `shipped`; includes shipment number if available; BG-only
 - `sendWholesaleNotification` — alerts shop owner when a wholesale inquiry is submitted
 - `sendWholesaleConfirmation` — sends acknowledgement to the contact (only if email provided); locale-aware BG/EN
 
@@ -100,7 +101,7 @@ Admin panel is fully built:
 
 ## Deployment (Railway)
 - `railway.toml` exists: `preDeployCommand = "npm run db:init"` runs DB initialisation before each deploy (safe to run repeatedly).
-- All env vars (`DATABASE_PATH`, `RAILWAY_RUN_UID`, `ADMIN_PASSWORD`, SMTP vars, `ECONT_BASE_URL`, `ECONT_USER`, `ECONT_PASS`, `ECONT_SENDER_CITY_ID`) are set in Railway's Variables dashboard — `.env` is gitignored. The Railway Volume must be mounted at `/data`.
+- All env vars (`DATABASE_PATH`, `RAILWAY_RUN_UID`, `ADMIN_PASSWORD`, `NEXT_PUBLIC_SITE_URL`, SMTP vars, `ECONT_BASE_URL`, `ECONT_USER`, `ECONT_PASS`, `ECONT_SENDER_CITY_ID`) are set in Railway's Variables dashboard — `.env` is gitignored. `NEXT_PUBLIC_SITE_URL` is used in email templates and `lib/siteUrl.js` (defaults to `https://shop.medovinata.bg`). The Railway Volume must be mounted at `/data`.
 - Never write the DB file during the build step — only at runtime, or data won't land on the volume.
 - Any `app/` file that queries the DB must have `export const dynamic = 'force-dynamic'` if Next.js would otherwise try to prerender it (e.g. `app/sitemap.js`). Route handlers and Server Components under dynamic `[param]` segments are already dynamic.
 - Single instance only (volume doesn't support horizontal scaling).
@@ -120,7 +121,7 @@ next-intl v4 patterns in use:
 ## Data Model
 ```
 products(id, name_bg, name_en, category[honey|mead], variant, price_bgn, stock_qty, weight_kg,
-         description_bg, description_en, image_path, active)
+         description_bg, description_en, active)
 product_images(id, product_id → products.id ON DELETE CASCADE, image_path, sort_order)
 orders(id, customer_name, phone, email, delivery_method[ekont_office|ekont_door|speedy_office|speedy_door],
        address_or_office, city, notes, status[pending|confirmed|shipped|delivered|cancelled], total_amount,
@@ -128,6 +129,7 @@ orders(id, customer_name, phone, email, delivery_method[ekont_office|ekont_door|
        delivery_price_eur, created_at)
 order_items(id, order_id → orders.id, product_id → products.id, qty, unit_price)
 wholesale_inquiries(id, company_name, contact_name, phone, email, message, estimated_volume, status[new|contacted|closed], created_at)
+site_content(key TEXT PK, value_bg, value_en)  -- dot-namespaced keys e.g. about.heading, home.hero_eyebrow
 ```
 
 Products cannot be deleted if they appear in `order_items` (FK constraint). Set `active = 0` to hide them from the shop instead.
@@ -174,6 +176,8 @@ Admin (not locale-prefixed, protected by `(protected)` layout):
 - Shared UI components in `/components` (`Header.js`, `LanguageToggle.js`, `MobileMenu.js`, `CookieBanner.js`, `CartBadgeLink.js`, `EcontOfficePicker.js`, `SplashScreen.js`). `Header` is a Server Component; `MobileMenu`, `CookieBanner`, `EcontOfficePicker`, and `SplashScreen` are Client Components. `SplashScreen` shows a branded overlay on the first page load per browser session (guarded by `sessionStorage`) and fades out after ~2.4 s — rendered in `app/[locale]/layout.js`.
 - `lib/i18n.js` exports `getLocalizedField(product, field, locale)` — use this instead of inline `product[name_${locale}]` lookups.
 - `lib/adminActions.js` exports `updateStatus(table, validStatuses, revalidateUrl, rowId, formData)` — shared helper used by orders and wholesale status-update actions. Not a `'use server'` file; import it from within `'use server'` action files.
+- Admin server actions must call `await requireAdmin()` (from `lib/adminSession.js`) as the first line — it throws a redirect to `/admin/login` if unauthenticated.
+- `lib/siteUrl.js` exports `SITE_URL` — use this (not a hardcoded string) wherever the public site URL is needed outside email templates.
 - `lib/price.js` exports `EUR_TO_BGN = 1.95583` (fixed BNB peg rate). All prices display as "X.XX EUR (Y.YY лв.)" — EUR is the leading value. Import this constant wherever currency conversion is needed; do not hardcode the rate.
 - `lib/econt.js` handles all Econt API calls: `searchOffices(query)`, `getDeliveryPrice(cityId, weightKg, cdAmount)`, `createWaybill(order, totalWeightKg)`. Offices and cities are cached in memory for 24 h. Uses `ECONT_BASE_URL` (default `https://demo.econt.com/ee/services`), `ECONT_USER`/`ECONT_PASS` (default `iasp-dev`/`1Asp-dev` — the official Econt integration test account), `ECONT_SENDER_CITY_ID` (default 42 = Стара Загора, used only when `ECONT_SENDER_OFFICE_CODE` is absent), `ECONT_SENDER_OFFICE_CODE` (office the merchant drops parcels at — required for waybill creation), `ECONT_SENDER_NAME` and `ECONT_SENDER_PHONE` (merchant identity on the label). Waybill creation requires all three sender vars and passes `mode: "create"` explicitly. Production requires real e-econt credentials and `ECONT_BASE_URL=https://ee.econt.com/services`.
 - `components/EcontOfficePicker.js` is a Client Component — debounced search calling `/api/econt/offices`, fills hidden inputs `address_or_office`, `city`, `econt_office_code`, and fires `onSelect(office)` with the full office object (including `cityId` for price lookup).
